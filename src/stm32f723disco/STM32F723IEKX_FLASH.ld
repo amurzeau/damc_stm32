@@ -35,17 +35,6 @@
 /* Entry Point */
 ENTRY(Reset_Handler)
 
-/* Highest address of the user mode stack */
-_estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
-
-_Min_Heap_Size = 0x200; /* required amount of heap */
-_Min_Stack_Size = 0x400; /* required amount of stack */
-
-/* Heap start and end addresses in PSRAM */
-_sheap = ORIGIN(PSRAM); /* start of "PSRAM" Ram type memory */
-_eheap = ORIGIN(PSRAM) + LENGTH(PSRAM); /* end of "PSRAM" Ram type memory */
-/* _eheap = _estack - _Min_Stack_Size; */
-
 /* Memories definition */
 MEMORY
 {
@@ -53,6 +42,16 @@ MEMORY
   FLASH    (rx)    : ORIGIN = 0x08000000,   LENGTH = 512K
   PSRAM   (xrw)    : ORIGIN = 0x60000000,   LENGTH = 512K
 }
+
+/* Highest address of the user mode stack */
+_estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
+
+_Min_Heap_Size = 0x200; /* required amount of heap */
+_Min_Stack_Size = 0x400; /* required amount of stack */
+
+/* Heap start and end addresses in PSRAM */
+__heap_end = ORIGIN(PSRAM) + LENGTH(PSRAM); /* end of "PSRAM" Ram type memory */
+/* __heap_end = _estack - _Min_Stack_Size; */
 
 /* Sections */
 SECTIONS
@@ -180,7 +179,7 @@ SECTIONS
   ._user_heap :
   {
     . = ALIGN(8);
-    PROVIDE ( _sheap = . );
+    PROVIDE ( __heap_start = . );
     . = . + _Min_Heap_Size;
     . = ALIGN(8);
   } >PSRAM

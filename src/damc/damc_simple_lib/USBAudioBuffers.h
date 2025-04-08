@@ -20,7 +20,7 @@ public:
 		DirectionAudioToUsb,
 	};
 
-	UsbAudioBuffer(enum DAMC_USB_Buffer_e index, BufferDirection direction) : index(index), direction(direction) {}
+	UsbAudioBuffer(enum DAMC_USB_Buffer_e index, BufferDirection direction) : direction(direction) {}
 
 	void resetBufferProcessedFlagFromAudio();
 
@@ -36,7 +36,6 @@ protected:
 private:
 	CircularBuffer<uint32_t, 3, false> buffer;
 	std::atomic<BufferOwner> processingByAudioISR = OwnerUnused;
-	enum DAMC_USB_Buffer_e index;
 	BufferDirection direction;
 
 	// Debug

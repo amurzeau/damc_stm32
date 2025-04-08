@@ -2,8 +2,6 @@
 #include "OscRoot.h"
 #include <spdlog/spdlog.h>
 
-EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscVariable)
-
 template<typename T>
 OscVariable<T>::OscVariable(OscContainer* parent,
                             std::string_view name,
@@ -81,3 +79,5 @@ void OscVariable<T>::visit(const std::function<void(OscNode*, OscArgument*, size
 	OscArgument valueToSend = this->getToOsc();
 	nodeVisitorFunction(this, &valueToSend, 1);
 }
+
+EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscVariable)

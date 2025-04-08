@@ -1,8 +1,6 @@
 #include "OscArray.h"
 #include "Utils.h"
 
-EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscArray)
-
 template<typename T>
 OscArray<T>::OscArray(OscContainer* parent, std::string_view name, readonly_type defaultValue)
     : OscGenericArray<OscVariable<T>>(parent, name) {
@@ -30,3 +28,5 @@ template<typename T> void OscArray<T>::initializeItem(OscVariable<T>* item) {
 		item->addChangeCallback(callback);
 	}
 }
+
+EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscArray)

@@ -20,7 +20,11 @@
 
 #include "types.h"
 #include "sizes.h"
-#include "memtester.h"
+
+#ifdef putchar
+// Clang use a define
+#undef putchar
+#endif
 
 #define fflush(...)
 #define fprintf(...)

@@ -271,8 +271,8 @@ extern "C" uint8_t* __sbrk_heap_end;  // end of heap
 extern "C" uint8_t _sdata;            // start of RAM
 extern "C" uint8_t _end;              // end of static data in RAM (start of heap)
 extern "C" uint8_t _estack;           // start of RAM (end of RAM as stack grows backward)
-extern "C" uint8_t _sheap;            // start of PSRAM (heap)
-extern "C" uint8_t _eheap;            // end of PSRAM (heap)
+extern "C" uint8_t __heap_start;      // start of PSRAM (heap)
+extern "C" uint8_t __heap_end;        // end of PSRAM (heap)
 extern "C" uint32_t _Min_Stack_Size;  // minimal stack size
 void AudioProcessor::onSlowTimer(uv_timer_t* handle) {
 	AudioProcessor* thisInstance = (AudioProcessor*) handle->data;
@@ -298,10 +298,10 @@ void AudioProcessor::onSlowTimer(uv_timer_t* handle) {
 			    static_cast<int32_t>((uint32_t) &_estack - (uint32_t) &_Min_Stack_Size - (uint32_t) &_end);
 			thisInstance->fastMemoryAvailable.set(available_fast_memory);
 
-			uint32_t used_slow_memory = static_cast<int32_t>((uint32_t) __sbrk_heap_end - (uint32_t) &_sheap);
+			uint32_t used_slow_memory = static_cast<int32_t>((uint32_t) __sbrk_heap_end - (uint32_t) &__heap_start);
 			thisInstance->slowMemoryUsed.set(used_slow_memory);
 
-			uint32_t available_slow_memory = static_cast<int32_t>((uint32_t) &_eheap - (uint32_t) __sbrk_heap_end);
+			uint32_t available_slow_memory = static_cast<int32_t>((uint32_t) &__heap_end - (uint32_t) __sbrk_heap_end);
 			thisInstance->slowMemoryAvailable.set(available_slow_memory);
 			break;
 	}

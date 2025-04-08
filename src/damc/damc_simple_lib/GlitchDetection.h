@@ -21,7 +21,7 @@ enum GlitchType {
 	GT_Number
 };
 
-void GLITCH_DETECTION_increment_counter(enum GlitchType type) __attribute__((optimize("-O1")));
+void GLITCH_DETECTION_increment_counter(enum GlitchType type);
 void GLITCH_DETECTION_set_USB_out_feedback_state(int outIndex, bool feedback_working);
 
 #ifdef __cplusplus

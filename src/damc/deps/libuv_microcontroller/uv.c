@@ -14,6 +14,8 @@ enum {
 static uv_loop_t default_loop;
 static int default_loop_initialized = 0;
 
+extern uint32_t HAL_GetTick();
+
 uv_loop_t* uv_default_loop(void) {
 	if(!default_loop_initialized) {
 		default_loop_initialized = 1;

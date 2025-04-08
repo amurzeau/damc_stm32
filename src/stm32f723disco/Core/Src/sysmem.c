@@ -23,6 +23,7 @@
 /* Includes */
 #include <errno.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /**
  * Pointer to the current high watermark of the heap usage
@@ -38,26 +39,26 @@ uint8_t *__sbrk_heap_end = NULL;
  * #         newlib heap spawning the whole PSRAM (1MB)                       #
  * #                                                                          #
  * ############################################################################
- * ^-- _sheap, PSRAM start                                _eheap, PSRAM end --^
+ * ^-- __heap_start, PSRAM start                                __heap_end, PSRAM end --^
  * @endverbatim
  *
- * This implementation starts allocating at the '_sheap' linker symbol
- * The implementation considers '_eheap' linker symbol to be RAM end
+ * This implementation starts allocating at the '__heap_start' linker symbol
+ * The implementation considers '__heap_end' linker symbol to be RAM end
  *
  * @param incr Memory size
  * @return Pointer to allocated memory
  */
 void *_sbrk(ptrdiff_t incr)
 {
-  extern uint8_t _sheap; /* Symbol defined in the linker script */
-  extern uint8_t _eheap; /* Symbol defined in the linker script */
-  const uint8_t *max_heap = (uint8_t *)&_eheap;
+  extern uint8_t __heap_start; /* Symbol defined in the linker script */
+  extern uint8_t __heap_end;   /* Symbol defined in the linker script */
+  const uint8_t *max_heap = (uint8_t *)&__heap_end;
   uint8_t *prev_heap_end;
 
   /* Initialize heap end at first call */
   if (NULL == __sbrk_heap_end)
   {
-    __sbrk_heap_end = &_sheap;
+    __sbrk_heap_end = &__heap_start;
   }
 
   /* Protect heap from growing into the reserved MSP stack */

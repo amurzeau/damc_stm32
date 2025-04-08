@@ -23,6 +23,9 @@ public:
 	void visit(const std::function<void(OscNode*, OscArgument*, size_t)>& nodeVisitorFunction) override;
 
 private:
+	using OscReadOnlyVariable<T>::execute;
+
+private:
 	T incrementAmount;
 	std::vector<std::unique_ptr<OscEndpoint>> subEndpoint;
 };

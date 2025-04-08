@@ -27,11 +27,11 @@ PeakMeter::PeakMeter(OscContainer* parent,
 		//		}
 	});
 
-	oscSampleRate->addChangeCallback([this](int32_t newValue) {
-		//		for(auto& loudnessMeter : loudnessMeters) {
-		//			loudnessMeter.reset(newValue);
-		//		}
-	});
+	// oscSampleRate->addChangeCallback([this](int32_t newValue) {
+	//		for(auto& loudnessMeter : loudnessMeters) {
+	//			loudnessMeter.reset(newValue);
+	//		}
+	// });
 }
 
 PeakMeter::~PeakMeter() {}

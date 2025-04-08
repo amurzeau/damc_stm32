@@ -7,6 +7,7 @@
 
 class OscSourceVariable {
 public:
+	virtual ~OscSourceVariable() = 0;
 	virtual bool isDefault() const = 0;
 	virtual void addCheckCallback(std::function<bool()> callback) = 0;
 	virtual void addChangeCallback(std::function<void()> callback) = 0;

@@ -430,9 +430,11 @@ size_t UsbAudioBuffer::writeAudioSample(bool fromAudioISR, const void* data, siz
 		processingByAudioISR.store(OwnerUnused, std::memory_order_release);
 	}
 
+#ifdef ENABLE_TRACING
 	uint32_t available_size = buffer.getAvailableReadForDMA(usb_read_pos);
 	uint32_t dma_pos = CodecAudio::instance.getDMAOutPos() % 48;
 	TRACING_add_buffer(index, available_size, dma_pos, "Write usbBuffers");
+#endif
 
 	return writtenSize;
 }
@@ -466,9 +468,11 @@ size_t UsbAudioBuffer::readAudioSample(bool fromAudioISR, void* data, size_t siz
 		processingByAudioISR.store(OwnerUnused, std::memory_order_relaxed);
 	}
 
+#ifdef ENABLE_TRACING
 	uint32_t available_size = buffer.getAvailableReadForDMA(buffer.getReadPos());
 	uint32_t dma_pos = CodecAudio::instance.getDMAOutPos() % 48;
 	TRACING_add_buffer(index, available_size, dma_pos, "Read usbBuffers");
+#endif
 
 	return readSize;
 }

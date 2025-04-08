@@ -42,7 +42,7 @@ _Min_Heap_Size = 0x200; /* required amount of heap */
 _Min_Stack_Size = 0x2000; /* required amount of stack */
 
 /* Heap end address */
-_eheap = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size; /* end of heap Ram type memory */
+__heap_end = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size; /* end of heap Ram type memory */
 
 /* Memories definition */
 MEMORY
@@ -187,7 +187,7 @@ SECTIONS
   ._user_heap_stack :
   {
     . = ALIGN(8);
-	_sheap = .; /* start of heap */
+	__heap_start = .; /* start of heap */
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;

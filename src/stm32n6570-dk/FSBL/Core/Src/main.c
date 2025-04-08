@@ -528,8 +528,8 @@ static void MX_GPIO_Init(void)
 
 /* MPU Configuration */
 
-extern uint8_t _sheap;
-extern uint8_t _eheap;
+extern uint8_t __heap_start;
+extern uint8_t __heap_end;
 void MPU_Config(void)
 {
   MPU_Region_InitTypeDef MPU_InitStruct = {0};
@@ -558,7 +558,7 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER1;
   MPU_InitStruct.BaseAddress = 0x341C0000;
-  MPU_InitStruct.LimitAddress = ((((uint32_t)&_sheap) + 31) & 0xFFFFFFE0) - 1;
+  MPU_InitStruct.LimitAddress = ((((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0) - 1;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
   MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
@@ -596,8 +596,8 @@ void MPU_Config(void)
   /** Initializes and configures the Region 5 and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER5;
-  MPU_InitStruct.BaseAddress = (((uint32_t)&_sheap) + 31) & 0xFFFFFFE0;
-  MPU_InitStruct.LimitAddress = (((uint32_t)&_eheap) & 0xFFFFFFE0) - 1;
+  MPU_InitStruct.BaseAddress = (((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0;
+  MPU_InitStruct.LimitAddress = (((uint32_t)&__heap_end) & 0xFFFFFFE0) - 1;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
@@ -606,7 +606,7 @@ void MPU_Config(void)
   /** Initializes and configures the Region 6 and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER6;
-  MPU_InitStruct.BaseAddress = ((uint32_t)&_eheap) & 0xFFFFFFE0;
+  MPU_InitStruct.BaseAddress = ((uint32_t)&__heap_end) & 0xFFFFFFE0;
   MPU_InitStruct.LimitAddress = 0x341FFFFF;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
 

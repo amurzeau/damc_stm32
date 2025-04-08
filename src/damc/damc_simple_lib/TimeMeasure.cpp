@@ -49,7 +49,6 @@ TimeMeasure::TimeMeasure()
       time_sum_between_reset(0),
       time_sum(0),
       time_sum_per_loop(0),
-      time_max_between_reset(0),
       time_max(0),
       begin_time(0),
       isMeasuring(false) {

@@ -3,7 +3,6 @@
 #include "OscContainer.h"
 #include "OscFlatArray.h"
 #include <array>
-#include <initializer_list>
 
 template<typename T, size_t N> class OscFixedArray : public OscContainer {
 public:
@@ -36,7 +35,7 @@ OscFixedArray<T, N>::OscFixedArray(OscContainer* parent, std::string_view name, 
 	keys.setData(std::move(keysValue));
 
 	keys.addChangeCallback(
-	    [this](const std::vector<int32_t>& oldKeys, const std::vector<int32_t>& newKeys) { return false; });
+	    [](const std::vector<int32_t>& oldKeys, const std::vector<int32_t>& newKeys) { return false; });
 }
 
 template<typename T, size_t N> bool OscFixedArray<T, N>::contains(size_t index) const {

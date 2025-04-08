@@ -35,7 +35,6 @@ private:
 	uint32_t time_sum_between_reset;
 	uint32_t time_sum;
 	uint32_t time_sum_per_loop;
-	uint32_t time_max_between_reset;
 	uint32_t time_max;
 	uint32_t begin_time;
 	bool isMeasuring;

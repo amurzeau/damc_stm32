@@ -1,8 +1,6 @@
 #include "OscDynamicVariable.h"
 #include <spdlog/spdlog.h>
 
-EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscDynamicVariable)
-
 template<typename T>
 OscDynamicVariable<T>::OscDynamicVariable(OscContainer* parent, std::string_view name) : OscContainer(parent, name) {}
 
@@ -34,3 +32,5 @@ template<typename T> void OscDynamicVariable<T>::notifyOsc() {
 	OscArgument valueToSend = onReadCallback();
 	sendMessage(&valueToSend, 1);
 }
+
+EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscDynamicVariable)

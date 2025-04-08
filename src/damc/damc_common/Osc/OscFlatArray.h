@@ -25,6 +25,9 @@ public:
 
 	void visit(const std::function<void(OscNode*, OscArgument*, size_t)>& nodeVisitorFunction) override;
 
+private:
+	using OscContainer::execute;
+
 protected:
 	void notifyOsc();
 	bool checkData(bool fromOsc);

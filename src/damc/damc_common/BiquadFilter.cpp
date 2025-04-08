@@ -3,11 +3,11 @@
 #include <math.h>
 #include <string.h>
 
-void BiquadFilter::init(const float a_coefs[], const float b_coefs[]) {
+void BiquadFilter::init(const float a_coefs[3], const float b_coefs[3]) {
 	update(a_coefs, b_coefs);
 }
 
-void BiquadFilter::update(const float a_coefs[], const float b_coefs[]) {
+void BiquadFilter::update(const float a_coefs[3], const float b_coefs[3]) {
 	this->coefs[0] = b_coefs[0] / a_coefs[0];
 	this->coefs[1] = b_coefs[1] / a_coefs[0];
 	this->coefs[2] = b_coefs[2] / a_coefs[0];

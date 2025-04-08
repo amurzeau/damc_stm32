@@ -4,8 +4,6 @@
 #include <spdlog/spdlog.h>
 #include <type_traits>
 
-EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscFlatArray);
-
 template<typename T>
 OscFlatArray<T>::OscFlatArray(OscContainer* parent, std::string_view name, bool persistValue) noexcept
     : OscContainer(parent, name) {
@@ -135,3 +133,5 @@ template<typename T> bool OscFlatArray<T>::checkData(bool fromOsc) {
 
 	return false;
 }
+
+EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscFlatArray);

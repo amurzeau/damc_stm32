@@ -2,8 +2,6 @@
 #include "OscRoot.h"
 #include <spdlog/spdlog.h>
 
-EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscReadOnlyVariable)
-
 template<typename T>
 OscReadOnlyVariable<T>::OscReadOnlyVariable(OscContainer* parent, std::string_view name, readonly_type initialValue)
     : OscContainer(parent, name), value(initialValue), isDefaultValue(true) {
@@ -107,3 +105,5 @@ template<typename T> void OscReadOnlyVariable<T>::setFromOsc(readonly_type value
 	else
 		set(convertFromOsc(value), true);
 }
+
+EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscReadOnlyVariable)

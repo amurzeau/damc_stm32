@@ -5,7 +5,6 @@
 #include <Osc/OscReadOnlyVariable.h>
 #include <Osc/OscVariable.h>
 #include <array>
-#include <deque>
 #include <stddef.h>
 
 class CompressorFilter : public OscContainer {
@@ -31,10 +30,6 @@ protected:
 private:
 	static constexpr size_t numChannel = 2;
 
-	// Level to dB function to use
-	using LevelToDbFunction = float (CompressorFilter::*)(float sample);
-	LevelToDbFunction levelDetector;
-	LevelToDbFunction levelToDb;
 	// Level detector state
 	float y1;
 	float yL;

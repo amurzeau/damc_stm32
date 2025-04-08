@@ -129,7 +129,7 @@ size_t CircularBuffer<T, N, do_manage_cache>::writeOutBuffer(uint32_t dma_read_o
 
 	// Atomically update both the write pointer and the buffer processed flag
 	// using a single 32 bits write.
-	out_write_offset.raw = Offset{true, end}.raw;
+	out_write_offset.raw = Offset{{true, end}}.raw;
 
 	return size;
 }
@@ -187,7 +187,7 @@ size_t CircularBuffer<T, N, do_manage_cache>::readInBuffer(uint32_t dma_write_of
 
 	// Atomically update both the read pointer and the buffer processed flag
 	// using a single 32 bits write.
-	in_read_offset.raw = Offset{true, end}.raw;
+	in_read_offset.raw = Offset{{true, end}}.raw;
 
 	return size;
 }

@@ -1,8 +1,6 @@
 #include "OscDynamicFlatArray.h"
 #include <spdlog/spdlog.h>
 
-EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscDynamicFlatArray)
-
 template<typename T>
 OscDynamicFlatArray<T>::OscDynamicFlatArray(OscContainer* parent, std::string_view name) : OscContainer(parent, name) {}
 
@@ -55,3 +53,5 @@ template<typename T> void OscDynamicFlatArray<T>::notifyOsc() {
 
 	sendMessage(&valueToSend[0], valueToSend.size());
 }
+
+EXPLICIT_INSTANCIATE_OSC_VARIABLE(template, OscDynamicFlatArray)

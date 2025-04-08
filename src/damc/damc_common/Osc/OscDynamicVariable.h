@@ -18,6 +18,9 @@ public:
 	void setReadCallback(std::function<readonly_type()> onReadCallback);
 	void setWriteCallback(std::function<void(readonly_type)> onWriteCallback);
 
+private:
+	using OscContainer::execute;
+
 protected:
 	void notifyOsc();
 
