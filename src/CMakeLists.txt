@@ -6,9 +6,18 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(${TOOLCHAIN_TARGET_NAME})
 
+
+add_library(common_flags INTERFACE)
+target_compile_options(common_flags INTERFACE
+	-ggdb3
+	-gdwarf-4
+	"$<$<CONFIG:Release>:-Ofast>"
+	"$<$<CONFIG:Release>:-flto=auto>"
+)
+
 set(DISABLEFLOAT16 ON)
 add_subdirectory(CMSIS-DSP)
-target_link_libraries(CMSISDSP PUBLIC stm32cube_headers)
+target_link_libraries(CMSISDSP PUBLIC stm32cube_headers common_flags)
 
 
 file(GLOB_RECURSE SOURCE_LIST
@@ -22,6 +31,7 @@ add_executable(${TARGET_NAME} ${SOURCE_LIST})
 add_st_target_properties(${TARGET_NAME})
 target_link_libraries(${TARGET_NAME} PUBLIC CMSISDSP)
 target_link_libraries(${TARGET_NAME} PUBLIC stm32cube)
+target_link_libraries(${TARGET_NAME} PUBLIC common_flags)
 
 target_include_directories(
     ${TARGET_NAME} PRIVATE

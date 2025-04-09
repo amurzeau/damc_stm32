@@ -11,13 +11,6 @@ target_include_directories(stm32cube_headers INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/Drivers/CMSIS/Include
 )
 
-target_compile_options(stm32cube_headers INTERFACE
-	-ggdb3
-	-gdwarf-4
-	"$<$<CONFIG:Release>:-Ofast>"
-	"$<$<CONFIG:Release>:-flto>"
-)
-
 target_compile_definitions(stm32cube_headers INTERFACE
     "$<$<CONFIG:Debug>:DEBUG>"
     "$<$<CONFIG:Debug>:USE_FULL_ASSERT>"
