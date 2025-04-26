@@ -66,16 +66,13 @@ void TimeMeasure::beginMeasure() {
 	uint32_t current_time = TIM2->CNT;
 	HAL_GPIO_WritePin(DEBUG_GPIO_PORT[index], DEBUG_GPIO_PIN[index], GPIO_PIN_SET);
 
-	int32_t stackIndex = stackRunningTasksIndex;
+	int32_t previousStackIndex = stackRunningTasksIndex++;
+	stackRunningTasks[previousStackIndex + 1] = this;
 
 	// Pause running measure
-	if(stackIndex >= 0) {
-		stackRunningTasks[stackIndex]->updateMeasureAndStop(current_time);
+	if(previousStackIndex >= 0) {
+		stackRunningTasks[previousStackIndex]->updateMeasureAndStop(current_time);
 	}
-
-	stackIndex++;
-	stackRunningTasksIndex = stackIndex;
-	stackRunningTasks[stackIndex] = this;
 
 	begin_time = current_time;
 	current_measure_sum = 0;
@@ -99,13 +96,13 @@ void TimeMeasure::endMeasure() {
 	if(stackIndex >= 0)
 		stackRunningTasks[stackIndex]->begin_time = current_time;
 
+	time_sum += current_measure_sum;
 	time_sum_per_loop += current_measure_sum;
 	__enable_irq();
 }
 
 bool TimeMeasure::updateMeasureAndStop(uint32_t current_time) {
 	uint32_t time_measured = current_time - begin_time;
-	time_sum += time_measured;
 	current_measure_sum += time_measured;
 
 	return true;
