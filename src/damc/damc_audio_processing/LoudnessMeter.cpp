@@ -62,10 +62,10 @@ float LoudnessMeter::linearToLufs(float linearMeanSquareChannelSum) {
 
 	// move to log scale to get LUKS
 	// Note: we divide by 2 the log result to do the "square root" in the log domain
-	return -0.691 + fastlog2(linearMeanSquareChannelSum) / (LOG10_VALUE_DIV_20 * 2);
+	return -0.691f + fastlog2(linearMeanSquareChannelSum) / (LOG10_VALUE_DIV_20 * 2);
 }
 
 float LoudnessMeter::lufsToLinear(float lufs) {
 	// move to linear scale from LUKS
-	return fastpow2((lufs + 0.691) * (LOG10_VALUE_DIV_20 * 2));
+	return fastpow2((lufs + 0.691f) * (LOG10_VALUE_DIV_20 * 2));
 }

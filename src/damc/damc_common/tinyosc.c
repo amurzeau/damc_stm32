@@ -456,7 +456,7 @@ void tosc_printMessage(tosc_message_const* osc) {
 				break;
 			}
 			case 'f':
-				printf(" %g", tosc_getNextFloat(osc));
+				printf(" %g", (double) tosc_getNextFloat(osc));
 				break;
 			case 'd':
 				printf(" %g", tosc_getNextDouble(osc));

@@ -50,5 +50,6 @@ target_include_directories(
 target_compile_options(
     ${TARGET_NAME} PRIVATE
 	-Wall
+	-Wdouble-promotion
 	-Wno-psabi
 )

@@ -20,7 +20,7 @@ void DitheringFilter::processSamples(float* samples, size_t count) {
 	if(bitReduction) {
 		float quantizationError = previousQuantizationError;
 		for(size_t i = 0; i < count; i++) {
-			float r = (dither1(randGenerator) - 0.5) / bitRatio;
+			float r = (dither1(randGenerator) - 0.5f) / bitRatio;
 			float dither = previousRandom - r;
 			previousRandom = r;
 			if(scale == 0)

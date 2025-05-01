@@ -66,9 +66,10 @@ void PeakMeter::onFastTimer() {
 
 	for(size_t channel = 0; channel < peaksPerChannelToSend.size(); channel++) {
 		// float peakDb = this->loudnessMeters[channel].getLoudness();
-		float peakDb = peaksPerChannelToSend[channel] != 0 ? 20.0 * log10(peaksPerChannelToSend[channel]) : -INFINITY;
+		float peakDb =
+		    peaksPerChannelToSend[channel] != 0.f ? 20.f * log10f(peaksPerChannelToSend[channel]) : -INFINITY;
 
-		float decayAmount = 11.76470588235294 * deltaT;  // -20dB / 1.7s
+		float decayAmount = 11.76470588235294f * deltaT;  // -20dB / 1.7s
 		// float levelDb = peakDb;
 		float levelDb = std::max(levelsDb[channel] - decayAmount, peakDb);
 		levelsDb[channel] = levelDb > -192 ? levelDb : -192;

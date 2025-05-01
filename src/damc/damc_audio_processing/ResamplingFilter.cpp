@@ -83,13 +83,13 @@ size_t ResamplingFilter::getMinRequiredOutputSize(size_t count) {
 }
 
 void ResamplingFilter::setClockDrift(float drift) {
-	float newRatio = oversamplingRatio * baseSamplingRate / targetSamplingRate / (1.0 + (float) drift);
+	float newRatio = oversamplingRatio * baseSamplingRate / targetSamplingRate / (1.0f + drift);
 	if(newRatio >= 1)
 		downsamplingRatio = newRatio;
 }
 
 float ResamplingFilter::getClockDrift() {
-	return (oversamplingRatio * baseSamplingRate / targetSamplingRate / downsamplingRatio) - 1.0;
+	return (oversamplingRatio * baseSamplingRate / targetSamplingRate / downsamplingRatio) - 1.0f;
 }
 
 void ResamplingFilter::setSourceSamplingRate(float samplingRate) {

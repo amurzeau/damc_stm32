@@ -50,9 +50,9 @@ void BiquadFilter::computeFilter(
 		a_coefs[1] = 0;
 		a_coefs[2] = 0;
 	} else {
-		double A = pow(10.0, gain / 40.0);
-		double w0 = 2.0 * M_PI * f0 / fs;
-		double alpha = sin(w0) / (2.0 * Q);
+		double A = pow(10.0, (double) gain / 40.0);
+		double w0 = 2.0 * M_PI * (double) f0 / (double) fs;
+		double alpha = sin(w0) / (2.0 * (double) Q);
 
 		switch(filterType) {
 			default:
@@ -81,9 +81,9 @@ void BiquadFilter::computeFilter(
 				a_coefs[2] = 1 - alpha;
 				break;
 			case FilterType::BandPassConstantSkirt:
-				b_coefs[0] = Q * alpha;
+				b_coefs[0] = (double) Q * alpha;
 				b_coefs[1] = 0;
-				b_coefs[2] = -Q * alpha;
+				b_coefs[2] = -(double) Q * alpha;
 				a_coefs[0] = 1 + alpha;
 				a_coefs[1] = -2 * cos(w0);
 				a_coefs[2] = 1 - alpha;
