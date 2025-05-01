@@ -27,6 +27,7 @@
 #include "stm32f7xx_hal_qspi.h"
 #include "stm32f7xx_hal_gpio.h"
 #include "stm32f7xx_hal_dma.h"
+#include "SamplingProfiler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,8 +63,8 @@
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern TIM_HandleTypeDef htim2;
-extern DMA_HandleTypeDef* hdma2_stream3;
-extern DMA_HandleTypeDef* hdma2_stream5;
+extern DMA_HandleTypeDef *hdma2_stream3;
+extern DMA_HandleTypeDef *hdma2_stream5;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -74,7 +75,7 @@ extern DMA_HandleTypeDef* hdma2_stream5;
 /**
   * @brief This function handles Non maskable interrupt.
   */
-void NMI_Handler(void)
+void NMI_Handler_unused(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
@@ -84,6 +85,35 @@ void NMI_Handler(void)
   {
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
+}
+
+__attribute__((naked)) void NMI_Handler(void)
+{
+  // To trigger NMI: SCB->ICSR |= SCB_ICSR_NMIPENDSET_Msk;
+  // Find the original stack pointer in a naked function to ensure the compiler doesn't use the stack for local
+  // variables. The real ISR handle is then called with the stack pointer value as argument
+  asm("tst lr, #4\n"         // Test for MSP or PSP
+      "ite eq\n"             // If equal
+      "mrseq r0, msp\n"      //  r0 = msp
+      "mrsne r0, psp\n"      // else r0 = psp
+      "push {r4-r12, lr}\n"  // Save all additional registers
+      ".cfi_def_cfa_offset 40\n"
+      ".cfi_offset 14, -4\n"
+      ".cfi_offset 11, -12\n"
+      ".cfi_offset 10, -16\n"
+      ".cfi_offset 9, -20\n"
+      ".cfi_offset 8, -24\n"
+      ".cfi_offset 7, -28\n"
+      ".cfi_offset 6, -32\n"
+      ".cfi_offset 5, -36\n"
+      ".cfi_offset 4, -40\n"
+      "mov r1, sp\n"                      // r1 = sp
+      "bl %[SAMPLINGPROFILER_capture]\n"  // Call real handler
+      "pop {r4-r12, pc}\n"
+      :                                                           // output
+      : [SAMPLINGPROFILER_capture] "i"(SAMPLINGPROFILER_capture)  // input
+      : "r0", "r1"                                                // clobber
+  );
 }
 
 /**
@@ -225,7 +255,7 @@ void TIM2_IRQHandler(void)
   */
 
 uint32_t original_program_pointer;
-void OTG_HS_IRQHandler_real(uint32_t original_msp)
+void OTG_HS_IRQHandler_real(const uint32_t *sp)
 {
   // Stack when interrupt happen
   // 0x2FF4 preempted task's stack data
@@ -237,7 +267,6 @@ void OTG_HS_IRQHandler_real(uint32_t original_msp)
   // 0x2FDC R2
   // 0x2FD8 R1
   // 0x2FD4 R0  <--- Thread Stack Pointer when interrupt happened (R13)
-  const uint32_t *sp = (const uint32_t *)original_msp;
   original_program_pointer = sp[6];
   __DMB();
 
@@ -276,8 +305,8 @@ __attribute__((naked)) void OTG_HS_IRQHandler(void)
 /* USER CODE BEGIN 1 */
 
 
-extern SAI_HandleTypeDef         haudio_out_sai;
-extern SAI_HandleTypeDef         haudio_in_sai;
+extern SAI_HandleTypeDef haudio_out_sai;
+extern SAI_HandleTypeDef haudio_in_sai;
 
 void AUDIO_OUT_SAIx_DMAx_IRQHandler(void)
 {
@@ -303,7 +332,8 @@ void AUDIO_IN_INT_IRQHandler(void)
 }
 
 /* HAT SAI DMA2 IRQs */
-void DMA2_Stream3_IRQHandler(void) {
+void DMA2_Stream3_IRQHandler(void)
+{
   // Only monitor cpu usage on TX DMA interrupt
   DAMC_beginMeasure(TMI_AudioProcessing);
   // Reset buffer processed flags before the DMA interrupt is cleared.
@@ -313,7 +343,8 @@ void DMA2_Stream3_IRQHandler(void) {
   DAMC_endMeasure(TMI_AudioProcessing);
 }
 
-void DMA2_Stream5_IRQHandler(void) {
+void DMA2_Stream5_IRQHandler(void)
+{
   HAL_DMA_IRQHandler(hdma2_stream5);
 }
 
@@ -326,7 +357,8 @@ void QUADSPI_IRQHandler(void)
 }
 
 // TS_INT IRQ
-void EXTI9_5_IRQHandler() {
+void EXTI9_5_IRQHandler()
+{
   DAMC_beginMeasure(TMI_OtherIRQ);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
