@@ -1,6 +1,7 @@
 #include "AudioProcessor.h"
 #include "OscSerialClient.h"
 #include "TimeMeasure.h"
+#include "Utils.h"
 #include <CodecAudio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -201,7 +202,7 @@ void AudioProcessor::processAudioInterleaved(const int16_t** input_endpoints,
 	strips.at(0).processSamples(buffer[1].dataPointers, numChannels, nframes);
 
 	// Copy output as it has multiple destination
-	memcpy(&buffer[2].data, &buffer[1].data, sizeof(buffer[1].data));
+	Utils::copy_n(&buffer[2].data[0][0], &buffer[1].data[0][0], sizeof(buffer[2].data) / sizeof(buffer[2].data[0][0]));
 
 	// Process out-record for IN 0
 	strips.at(4).processSamples(buffer[1].dataPointers, numChannels, nframes);

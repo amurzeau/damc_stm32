@@ -32,4 +32,10 @@ template<typename T> void vector_erase(std::vector<T>& v, T value) {
 	}
 }
 
+template<typename T> void copy_n(T* dst, const T* src, size_t count) {
+	for(size_t i = 0; i < count; i++) {
+		dst[i] = src[i];
+	}
+}
+
 }  // namespace Utils

@@ -10,6 +10,8 @@
 #include <math.h>
 #include <string.h>
 
+#include <Utils.h>
+
 void circularBufferCleanDataCache(uint32_t* addr, int32_t dsize);
 void circularBufferInvalidateDataCache(uint32_t* addr, int32_t dsize);
 
@@ -110,13 +112,13 @@ size_t CircularBuffer<T, N, do_manage_cache>::writeOutBuffer(uint32_t dma_read_o
 	if(end < start) {
 		// Copy between start and end of buffer
 		uint16_t first_chunk_size = buffer.size() - start;
-		memcpy(&buffer[start], data, first_chunk_size * sizeof(buffer[0]));
+		Utils::copy_n(&buffer[start], data, first_chunk_size);
 
 		// then between begin of buffer and end
-		memcpy(&buffer[0], &data[first_chunk_size], end * sizeof(buffer[0]));
+		Utils::copy_n(&buffer[0], &data[first_chunk_size], end);
 	} else {
 		// Copy from start to end
-		memcpy(&buffer[start], data, (end - start) * sizeof(buffer[0]));
+		Utils::copy_n(&buffer[start], data, (end - start));
 	}
 
 	assert(end < buffer.size());
@@ -159,16 +161,16 @@ size_t CircularBuffer<T, N, do_manage_cache>::readInBuffer(uint32_t dma_write_of
 	if(end < start) {
 		// Copy between start and end of buffer
 		uint16_t first_chunk_size = buffer.size() - start;
-		memcpy(data, &buffer[start], first_chunk_size * sizeof(buffer[0]));
+		Utils::copy_n(data, &buffer[start], first_chunk_size);
 
 		// then between begin of buffer and end
-		memcpy(&data[first_chunk_size], &buffer[0], end * sizeof(buffer[0]));
+		Utils::copy_n(&data[first_chunk_size], &buffer[0], end);
 
 		total_size = first_chunk_size + end;
 		assert(total_size <= nframes);
 	} else {
 		// Copy from start to end
-		memcpy(data, &buffer[start], (end - start) * sizeof(buffer[0]));
+		Utils::copy_n(data, &buffer[start], (end - start));
 		total_size = end - start;
 		assert(total_size <= nframes);
 	}

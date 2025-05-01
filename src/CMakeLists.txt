@@ -52,4 +52,7 @@ target_compile_options(
 	-Wall
 	-Wdouble-promotion
 	-Wno-psabi
+	# memcpy is slower than 32 bits word copies
+	-fno-builtin-memcpy
+	-fno-tree-loop-distribute-patterns
 )
