@@ -1,20 +1,25 @@
 #include "CodecSTM32F723EDiscoInit.h"
-#include "CodecAudio.h"
 #include <stdlib.h>
-
-void CodecSTM32F723EDiscoInit::init(bool slaveSAI) {
-	init_sai(slaveSAI);
-}
-
-void CodecSTM32F723EDiscoInit::init_after_clock_enabled() {
-	init_codec();
-}
 
 #ifdef STM32F723xx
 #include <stm32f723e_discovery.h>
 #include <stm32f723e_discovery_audio.h>
 
-void CodecSTM32F723EDiscoInit::init_sai(bool slaveSAI) {
+void CodecSTM32F723EDiscoInit::start(void* inBuffer, void* outBuffer, size_t size_bytes) {
+	init_sai();
+
+	init_codec();
+
+	setPeripherals(haudio_out_sai.hdmatx->Instance,
+	               haudio_out_sai.Instance,
+	               (volatile uint32_t*) haudio_out_sai.hdmatx->StreamBaseAddress,
+	               haudio_out_sai.hdmatx->StreamIndex);
+
+	startRxDMA(inBuffer, size_bytes);
+	startTxDMA(outBuffer, size_bytes);
+}
+
+void CodecSTM32F723EDiscoInit::init_sai() {
 	/* SAI2 */
 
 	/* Initialize the haudio_out_sai Instance parameter */
@@ -37,7 +42,7 @@ void CodecSTM32F723EDiscoInit::init_sai(bool slaveSAI) {
 	haudio_out_sai.Init.DataSize = SAI_DATASIZE_32;
 	haudio_out_sai.Init.FirstBit = SAI_FIRSTBIT_MSB;
 	haudio_out_sai.Init.ClockStrobing = SAI_CLOCKSTROBING_FALLINGEDGE;
-	haudio_out_sai.Init.Synchro = slaveSAI ? SAI_SYNCHRONOUS : SAI_ASYNCHRONOUS;
+	haudio_out_sai.Init.Synchro = SAI_ASYNCHRONOUS;
 	haudio_out_sai.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
 	haudio_out_sai.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
 	haudio_out_sai.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_1QF;
@@ -102,47 +107,34 @@ void CodecSTM32F723EDiscoInit::init_codec() {
 	}
 }
 
-void CodecSTM32F723EDiscoInit::startTxDMA(void* buffer, size_t nframes) {
+void CodecSTM32F723EDiscoInit::startTxDMA(void* buffer, size_t size_bytes) {
 	// Unmute
 	wm8994_drv.Play(AUDIO_I2C_ADDRESS, nullptr, 0);
 	/* Update the Media layer and enable it for play */
-	HAL_SAI_Transmit_DMA(
-	    &haudio_out_sai,
-	    (uint8_t*) buffer,
-	    nframes * sizeof(CodecAudio::CodecFrame::headphone) / sizeof(CodecAudio::CodecFrame::headphone[0]));
+	HAL_SAI_Transmit_DMA(&haudio_out_sai, (uint8_t*) buffer, size_bytes / sizeof(uint32_t));
 }
 
-void CodecSTM32F723EDiscoInit::startRxDMA(void* buffer, size_t nframes) {
+void CodecSTM32F723EDiscoInit::startRxDMA(void* buffer, size_t size_bytes) {
 	/* Update the Media layer and enable it for play */
-	HAL_SAI_Receive_DMA(
-	    &haudio_in_sai,
-	    (uint8_t*) buffer,
-	    nframes * sizeof(CodecAudio::CodecFrame::headphone) / sizeof(CodecAudio::CodecFrame::headphone[0]));
-}
-
-uint16_t CodecSTM32F723EDiscoInit::getTxRemainingCount(void) {
-	return __HAL_DMA_GET_COUNTER(haudio_out_sai.hdmatx);
-}
-
-uint16_t CodecSTM32F723EDiscoInit::getRxRemainingCount(void) {
-	return __HAL_DMA_GET_COUNTER(haudio_in_sai.hdmarx);
-}
-
-bool CodecSTM32F723EDiscoInit::isDMAIsrFlagSet(bool insertWaitStates) {
-	if(insertWaitStates) {
-		// Do a dummy read from the SAI peripheral
-		(void) haudio_out_sai.Instance->SR;
-	}
-	uint32_t ISR = *(volatile uint32_t*) haudio_out_sai.hdmatx->StreamBaseAddress;
-
-	return (ISR & ((DMA_FLAG_HTIF0_4 | DMA_FLAG_TCIF0_4) << haudio_out_sai.hdmatx->StreamIndex)) != RESET;
+	HAL_SAI_Receive_DMA(&haudio_in_sai, (uint8_t*) buffer, size_bytes / sizeof(uint32_t));
 }
 
 #elif defined(STM32N657xx)
 #include <stm32n6570_discovery.h>
 #include <stm32n6570_discovery_audio.h>
 
-void CodecSTM32F723EDiscoInit::init_sai(bool slaveSAI) {
+void CodecSTM32F723EDiscoInit::start(void* inBuffer, void* outBuffer, size_t size_bytes) {
+	init_sai();
+
+	init_codec();
+
+	setPeripherals(haudio_out_sai.hdmatx->Instance, haudio_out_sai.Instance, &haudio_out_sai.hdmatx->Instance->CSR, 0);
+
+	startRxDMA(inBuffer, size_bytes);
+	startTxDMA(outBuffer, size_bytes);
+}
+
+void CodecSTM32F723EDiscoInit::init_sai() {
 	BSP_AUDIO_Init_t inInit = {
 	    .Device = AUDIO_IN_DEVICE_ANALOG_MIC,
 	    .SampleRate = 48000,
@@ -167,29 +159,12 @@ void CodecSTM32F723EDiscoInit::init_sai(bool slaveSAI) {
 
 void CodecSTM32F723EDiscoInit::init_codec() {}
 
-void CodecSTM32F723EDiscoInit::startTxDMA(void* buffer, size_t nframes) {
-	BSP_AUDIO_OUT_Play(0, (uint8_t*) buffer, nframes * sizeof(CodecAudio::CodecFrame::headphone));
+void CodecSTM32F723EDiscoInit::startTxDMA(void* buffer, size_t size_bytes) {
+	BSP_AUDIO_OUT_Play(0, (uint8_t*) buffer, size_bytes);
 }
 
-void CodecSTM32F723EDiscoInit::startRxDMA(void* buffer, size_t nframes) {
-	BSP_AUDIO_IN_Record(0, (uint8_t*) buffer, nframes * sizeof(CodecAudio::CodecFrame::headphone));
+void CodecSTM32F723EDiscoInit::startRxDMA(void* buffer, size_t size_bytes) {
+	BSP_AUDIO_IN_Record(0, (uint8_t*) buffer, size_bytes);
 }
 
-uint16_t CodecSTM32F723EDiscoInit::getTxRemainingCount(void) {
-	return (__HAL_DMA_GET_COUNTER(haudio_out_sai.hdmatx) + 3) / 4;
-}
-
-uint16_t CodecSTM32F723EDiscoInit::getRxRemainingCount(void) {
-	return (__HAL_DMA_GET_COUNTER(haudio_in_sai.hdmarx) + 3) / 4;
-}
-
-bool CodecSTM32F723EDiscoInit::isDMAIsrFlagSet(bool insertWaitStates) {
-	if(insertWaitStates) {
-		// Do a dummy read from the SAI peripheral
-		(void) haudio_out_sai.Instance->SR;
-	}
-	uint32_t ISR = haudio_out_sai.hdmatx->Instance->CSR;
-
-	return (ISR & (DMA_FLAG_HT | DMA_FLAG_TC)) != 0;
-}
 #endif

@@ -2,7 +2,6 @@
 
 #ifdef STM32F723xx
 
-#include "CodecAudio.h"
 #include <stdlib.h>
 #include <stm32f723e_discovery.h>
 #include <stm32f7xx_hal_gpio.h>
@@ -14,18 +13,7 @@ DMA_HandleTypeDef* hdma2_stream3;
 DMA_HandleTypeDef* hdma2_stream5;
 }
 
-bool CodecDamcHATInit::isAvailable() {
-	// Reset Audio Codec
-	setReset(false);
-	HAL_Delay(2);  // Delay for 2mS for reset of codec
-	setReset(true);
-	HAL_Delay(2);  // Delay for 2mS before first write
-
-	// Check if available
-	return HAL_I2C_IsDeviceReady(&hi2c, 0x30, 1, 1000) == HAL_OK;
-}
-
-void CodecDamcHATInit::init_i2c() {
+void CodecDamcHATInit::init() {
 	__HAL_RCC_I2C2_CLK_ENABLE();
 	hi2c.Instance = I2C2;
 	hi2c.Init.Timing = DISCOVERY_I2Cx_TIMING;
@@ -40,7 +28,30 @@ void CodecDamcHATInit::init_i2c() {
 	HAL_I2C_Init(&hi2c);
 }
 
-void CodecDamcHATInit::init() {
+bool CodecDamcHATInit::isAvailable() {
+	// Reset Audio Codec
+	setReset(false);
+	HAL_Delay(2);  // Delay for 2mS for reset of codec
+	setReset(true);
+	HAL_Delay(2);  // Delay for 2mS before first write
+
+	// Check if available
+	return HAL_I2C_IsDeviceReady(&hi2c, 0x30, 1, 1000) == HAL_OK;
+}
+
+void CodecDamcHATInit::start(void* inBuffer, void* outBuffer, size_t size_bytes) {
+	init_audio();
+
+	setPeripherals(hsai_tx.hdmatx->Instance,
+	               hsai_tx.Instance,
+	               (volatile uint32_t*) hsai_tx.hdmatx->StreamBaseAddress,
+	               hsai_tx.hdmatx->StreamIndex);
+
+	startRxDMA(inBuffer, size_bytes);
+	startTxDMA(outBuffer, size_bytes);
+}
+
+void CodecDamcHATInit::init_audio() {
 	codec = this;
 
 	// Configure for 13.5MHz on 54Mhz TIM5_CH2 from 27Mhz APB1 (timers have a frequency of APB x2).
@@ -417,39 +428,14 @@ void CodecDamcHATInit::init_codec() {
 	// writeI2c(67, 0b10000000);  // Headset Detection Configuration Register Enable headset detection
 }
 
-void CodecDamcHATInit::startTxDMA(void* buffer, size_t nframes) {
+void CodecDamcHATInit::startTxDMA(void* buffer, size_t size_bytes) {
 	/* Update the Media layer and enable it for play */
-	HAL_SAI_Transmit_DMA(
-	    &hsai_tx,
-	    (uint8_t*) buffer,
-	    nframes * sizeof(CodecAudio::CodecFrame::headphone) / sizeof(CodecAudio::CodecFrame::headphone[0]));
+	HAL_SAI_Transmit_DMA(&hsai_tx, (uint8_t*) buffer, size_bytes / sizeof(uint32_t));
 }
 
-void CodecDamcHATInit::startRxDMA(void* buffer, size_t nframes) {
+void CodecDamcHATInit::startRxDMA(void* buffer, size_t size_bytes) {
 	/* Update the Media layer and enable it for play */
-	HAL_SAI_Receive_DMA(
-	    &hsai_rx,
-	    (uint8_t*) buffer,
-	    nframes * sizeof(CodecAudio::CodecFrame::headphone) / sizeof(CodecAudio::CodecFrame::headphone[0]));
-}
-
-uint16_t CodecDamcHATInit::getTxRemainingCount(void) {
-	return __HAL_DMA_GET_COUNTER(hsai_tx.hdmatx);
-}
-
-uint16_t CodecDamcHATInit::getRxRemainingCount(void) {
-	return __HAL_DMA_GET_COUNTER(hsai_rx.hdmarx);
-}
-
-bool CodecDamcHATInit::isDMAIsrFlagSet(bool insertWaitStates) {
-	if(insertWaitStates) {
-		// Do a dummy read from the SAI peripheral
-		(void) hsai_tx.Instance->SR;
-	}
-
-	uint32_t ISR = *(volatile uint32_t*) hsai_tx.hdmatx->StreamBaseAddress;
-
-	return (ISR & ((DMA_FLAG_HTIF0_4 | DMA_FLAG_TCIF0_4) << hsai_tx.hdmatx->StreamIndex)) != RESET;
+	HAL_SAI_Receive_DMA(&hsai_rx, (uint8_t*) buffer, size_bytes / sizeof(uint32_t));
 }
 
 void CodecDamcHATInit::writeI2c(uint8_t address, uint8_t value) {
@@ -493,9 +479,11 @@ bool CodecDamcHATInit::isAvailable() {
 	return false;
 }
 
-void CodecDamcHATInit::init_i2c() {}
-
 void CodecDamcHATInit::init() {}
+
+void CodecDamcHATInit::start(void* inBuffer, void* outBuffer, size_t size_bytes) {}
+
+void CodecDamcHATInit::init_audio() {}
 
 void CodecDamcHATInit::init_sai() {}
 
@@ -504,18 +492,6 @@ void CodecDamcHATInit::init_codec() {}
 void CodecDamcHATInit::startTxDMA(void* buffer, size_t nframes) {}
 
 void CodecDamcHATInit::startRxDMA(void* buffer, size_t nframes) {}
-
-uint16_t CodecDamcHATInit::getTxRemainingCount(void) {
-	return 0;
-}
-
-uint16_t CodecDamcHATInit::getRxRemainingCount(void) {
-	return 0;
-}
-
-bool CodecDamcHATInit::isDMAIsrFlagSet(bool insertWaitStates) {
-	return false;
-}
 
 void CodecDamcHATInit::writeI2c(uint8_t address, uint8_t value) {}
 

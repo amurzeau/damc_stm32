@@ -34,22 +34,23 @@
 /* Entry Point */
 ENTRY(Reset_Handler)
 
+/* Memories definition */
+MEMORY
+{
+  DTCM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
+  ROM (xrw)  : ORIGIN = 0x34000000, LENGTH = 2944K
+  RAM (xrw)  : ORIGIN = 0x342e0000, LENGTH = 448K
+}
+
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 _sstack = _estack - _Min_Stack_Size;
 
-_Min_Heap_Size = 0x200; /* required amount of heap */
+_Min_Heap_Size = 128*1024; /* required amount of heap */
 _Min_Stack_Size = 0x2000; /* required amount of stack */
 
 /* Heap end address */
 __heap_end = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size; /* end of heap Ram type memory */
-
-/* Memories definition */
-MEMORY
-{
-  ROM    (xrw)    : ORIGIN = 0x34180400,   LENGTH = 255K
-  RAM    (xrw)    : ORIGIN = 0x341C0000,   LENGTH = 256K
-}
 
 /* Sections */
 SECTIONS
@@ -90,14 +91,14 @@ SECTIONS
     . = ALIGN(4);
   } >ROM
 
-  .ARM.extab   (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .ARM.extab    : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
    {
     . = ALIGN(4);
     *(.ARM.extab* .gnu.linkonce.armextab.*)
     . = ALIGN(4);
   } >ROM
 
-  .ARM (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .ARM  : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
    {
     . = ALIGN(4);
     __exidx_start = .;
@@ -106,7 +107,7 @@ SECTIONS
     . = ALIGN(4);
   } >ROM
 
-  .preinit_array     (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .preinit_array      : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__preinit_array_start = .);
@@ -115,7 +116,7 @@ SECTIONS
     . = ALIGN(4);
   } >ROM
 
-  .init_array (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .init_array  : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__init_array_start = .);
@@ -125,7 +126,7 @@ SECTIONS
     . = ALIGN(4);
   } >ROM
 
-  .fini_array (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .fini_array  : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__fini_array_start = .);

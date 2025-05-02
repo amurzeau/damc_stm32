@@ -69,7 +69,6 @@ AudioProcessor::AudioProcessor(uint32_t numChannels, uint32_t sampleRate, size_t
 	controls.init();
 	oscStatePersist.init();
 	cpuFrequencyScaling.init();  // Init after state persist to avoid change callback because of state loading
-	oscEnableMicBias.addChangeCallback([](bool enable) { CodecAudio::instance.setMicBias(enable); });
 
 	uv_timer_init(uv_default_loop(), &timerFastStrips);
 	timerFastStrips.data = this;
@@ -80,6 +79,9 @@ AudioProcessor::AudioProcessor(uint32_t numChannels, uint32_t sampleRate, size_t
 AudioProcessor::~AudioProcessor() {}
 
 void AudioProcessor::start() {
+	// Enable MICBIAS configuration only after CodecAudio is initialized
+	oscEnableMicBias.addChangeCallback([](bool enable) { CodecAudio::instance.setMicBias(enable); });
+
 	lcdController.start();
 	glitchDetection.start();
 

@@ -267,13 +267,14 @@ void CPUFrequencyScaling::setRawTimerDivider(uint32_t index, uint32_t divider) {
 }
 
 void CPUFrequencyScaling::adjustCpuFreq(CpuFreqAdjustement adjustment) {
+	static const uint32_t MIN_DIVIDER = 3;
 	uint32_t current_divider = LL_RCC_IC1_GetDivider();
 	switch(adjustment) {
 		case CpuFreqAdjustement::ResetToMax:
-			setRawCPUDivider(1);
+			setRawCPUDivider(MIN_DIVIDER);
 			break;
 		case CpuFreqAdjustement::IncreaseSpeed:
-			if(current_divider > 1)
+			if(current_divider > MIN_DIVIDER)
 				setRawCPUDivider(current_divider--);
 			break;
 		case CpuFreqAdjustement::DecreaseSpeed:

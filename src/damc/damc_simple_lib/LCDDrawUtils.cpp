@@ -88,6 +88,7 @@ void LCDFillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Xsize, uint16_t Ysize, u
 #include <stm32n6xx_hal_gpio.h>
 
 void LCDInit() {
+	return;
 	// Initialize FRD154BP2902-D-CTQ LCD touch screen module
 
 	// Initialize FT3267 touchscreen controller
@@ -112,7 +113,7 @@ extern "C" void BSP_TS_Callback(uint32_t Instance) {
 
 TSState TSGetState() {
 	TS_State_t state;
-	BSP_TS_GetState(0, &state);
+	// BSP_TS_GetState(0, &state);
 
 	return TSState{
 	    .TouchDetected = state.TouchDetected,
@@ -122,6 +123,7 @@ TSState TSGetState() {
 }
 
 void LCDDrawPixel(uint16_t Xpos, uint16_t Ypos, uint32_t RGB_Code) {
+	return;
 	BSP_LCD_WritePixel(0, Xpos, Ypos, RGB_Code);
 }
 
@@ -138,20 +140,24 @@ const sFONT* LCDGetFont() {
 }
 
 void LCDDisplayOn() {
+	return;
 	BSP_LCD_DisplayOn(0);
 	HAL_GPIO_WritePin(GPIOQ, GPIO_PIN_6, GPIO_PIN_SET); /* 100% Brightness */ /* PQ6  LCD_BL_CTRL */
 }
 
 void LCDDisplayOff() {
+	return;
 	HAL_GPIO_WritePin(GPIOQ, GPIO_PIN_6, GPIO_PIN_RESET);
 	BSP_LCD_DisplayOff(0);
 }
 
 void LCDFillScreen(uint32_t color) {
+	return;
 	BSP_LCD_FillRect(0, 0, 0, LCD_DEFAULT_WIDTH, LCD_DEFAULT_HEIGHT, color);
 }
 
 void LCDFillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Xsize, uint16_t Ysize, uint32_t color) {
+	return;
 	BSP_LCD_FillRect(0, Xpos, Ypos, Xsize, Ysize, color);
 }
 

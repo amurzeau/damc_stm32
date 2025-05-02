@@ -135,7 +135,7 @@ int32_t UsbAudioBuffer::adjustUsbBufferAvailableForCurrentProcessingPeriodFromUS
 
 	// Always use DMAOutPos even for IN endpoint as the audio processing period is defined by the DMA Out interrupts.
 	// DMA In is in sync with DMA Out and is a the same position.
-	uint32_t dma_pos = CodecAudio::instance.getDMAOutPos() % 48;
+	uint32_t dma_pos = CodecAudio::instance.getDMAPos() % 48;
 
 	// When dma_pos == 0, we need to do a dummy SAI peripheral read to ensure the
 	// DMA ISR interrupt flag is set even if the DMA transfer was still in fligh when we read dma_pos.
@@ -432,7 +432,7 @@ size_t UsbAudioBuffer::writeAudioSample(bool fromAudioISR, const void* data, siz
 
 #ifdef ENABLE_TRACING
 	uint32_t available_size = buffer.getAvailableReadForDMA(usb_read_pos);
-	uint32_t dma_pos = CodecAudio::instance.getDMAOutPos() % 48;
+	uint32_t dma_pos = CodecAudio::instance.getDMAPos() % 48;
 	TRACING_add_buffer(index, available_size, dma_pos, "Write usbBuffers");
 #endif
 
@@ -470,7 +470,7 @@ size_t UsbAudioBuffer::readAudioSample(bool fromAudioISR, void* data, size_t siz
 
 #ifdef ENABLE_TRACING
 	uint32_t available_size = buffer.getAvailableReadForDMA(buffer.getReadPos());
-	uint32_t dma_pos = CodecAudio::instance.getDMAOutPos() % 48;
+	uint32_t dma_pos = CodecAudio::instance.getDMAPos() % 48;
 	TRACING_add_buffer(index, available_size, dma_pos, "Read usbBuffers");
 #endif
 

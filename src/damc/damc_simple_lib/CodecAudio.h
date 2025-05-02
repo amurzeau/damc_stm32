@@ -5,6 +5,8 @@
 #include "CodecSTM32F723EDiscoInit.h"
 #include <stdint.h>
 
+class CodecHardwareInterface;
+
 class CodecAudio {
 public:
 	struct CodecFrame {
@@ -18,15 +20,10 @@ public:
 	void processAudioInterleavedOutput(const CodecFrame* data_input, size_t nframes);
 	void processAudioInterleavedInput(CodecFrame* data_output, size_t nframes);
 
-	/** @brief Get DMA read position in samples unit.
+	/** @brief Get DMA position in samples unit.
 	 * Return the position of the hardware DMA read pointer in the buffer.
 	 */
-	uint32_t getDMAOutPos();
-
-	/** @brief Get DMA write position in samples unit.
-	 * Return the position of the hardware DMA write pointer in the buffer.
-	 */
-	uint32_t getDMAInPos();
+	uint32_t getDMAPos();
 
 	/** @brief Check if the audio processing interrupt is pending.
 	 * @param insertWaitStates true to insert a SAI peripheral dummy read before reading ISR
@@ -50,9 +47,9 @@ private:
 
 	CodecBuffers codecBuffers;
 
+	CodecHardwareInterface* codecHardwareInterface;
 	CodecSTM32F723EDiscoInit codecSTM32F723EDiscoInit;
 	CodecDamcHATInit codecDamcHATInit;
-	bool useTlvAsMclkMaster;
 
 	uint32_t previousAvailableDmaIn;
 	uint32_t previousAvailableDmaOut;

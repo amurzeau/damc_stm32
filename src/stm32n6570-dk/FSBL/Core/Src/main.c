@@ -24,6 +24,7 @@
 #include <usb_device.h>
 #include "AudioCApi.h"
 #include "Tracing.h"
+#include <stm32n6570_discovery.h>
 
 /* USER CODE END Includes */
 
@@ -77,6 +78,18 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
+  __HAL_RCC_SYSCFG_CLK_ENABLE();
+  RCC->MEMENR |= RCC_MEMENR_AXISRAM3EN | RCC_MEMENR_AXISRAM4EN | RCC_MEMENR_AXISRAM5EN | RCC_MEMENR_AXISRAM6EN;
+
+  RAMCFG_SRAM2_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM3_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM4_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM5_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM6_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+
+  /* Allow caches to be activated. Default value is 1, but the current boot sets it to 0 */
+  MEMSYSCTL->MSCR |= MEMSYSCTL_MSCR_DCACTIVE_Msk | MEMSYSCTL_MSCR_ICACTIVE_Msk;
+
   /* USER CODE END 1 */
 
   /* Enable the CPU Cache */
@@ -94,6 +107,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  BSP_SMPS_Init(SMPS_VOLTAGE_OVERDRIVE);
 
   /* USER CODE END Init */
 
@@ -238,7 +252,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.IC2Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
   RCC_ClkInitStruct.IC2Selection.ClockDivider = 10;
   RCC_ClkInitStruct.IC6Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-  RCC_ClkInitStruct.IC6Selection.ClockDivider = 256;
+  RCC_ClkInitStruct.IC6Selection.ClockDivider = 1;
   RCC_ClkInitStruct.IC11Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
   RCC_ClkInitStruct.IC11Selection.ClockDivider = 256;
 
@@ -540,12 +554,12 @@ void MPU_Config(void)
   /* Disables the MPU */
   HAL_MPU_Disable();
 
-  /** Initializes and configures the Region 0 and the memory to be protected
+  /** Initializes and configures the Region 0 (ROM) and the memory to be protected
   */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x34180400;
-  MPU_InitStruct.LimitAddress = 0x341BFFFF;
+  MPU_InitStruct.BaseAddress = 0x34000000;
+  MPU_InitStruct.LimitAddress = 0x342dffff;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RO;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
@@ -554,10 +568,10 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 1 and the memory to be protected
+  /** Initializes and configures the Region 1 (cached RAM) and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
-  MPU_InitStruct.BaseAddress = 0x341C0000;
+  MPU_InitStruct.Number++;
+  MPU_InitStruct.BaseAddress = 0x342e0000;
   MPU_InitStruct.LimitAddress = ((((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0) - 1;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
@@ -565,9 +579,9 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 2 and the memory to be protected
+  /** Initializes and configures the Region 2 (Peripherals) and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER2;
+  MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = 0x40000000;
   MPU_InitStruct.LimitAddress = 0x5FFFFFFF;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
@@ -575,27 +589,27 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 3 and the memory to be protected
+  /** Initializes and configures the Region 3 (ARM Peripherals) and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER3;
+  MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = 0xE0000000;
   MPU_InitStruct.LimitAddress = 0xE0043FFF;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER1;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 4 and the memory to be protected
+  /** Initializes and configures the Region 4 (LCD RAM non cached) and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER4;
-  MPU_InitStruct.BaseAddress = 0x34000000;
-  MPU_InitStruct.LimitAddress = 0x3417FFFF;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
+  //MPU_InitStruct.Number++;
+  //MPU_InitStruct.BaseAddress = 0x34000000;
+  //MPU_InitStruct.LimitAddress = 0x3417FFFF;
+  //MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 5 and the memory to be protected
+  /** Initializes and configures the Region 5 (Heap RAM non cached) and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER5;
+  MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = (((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0;
   MPU_InitStruct.LimitAddress = (((uint32_t)&__heap_end) & 0xFFFFFFE0) - 1;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
@@ -603,11 +617,11 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 6 and the memory to be protected
+  /** Initializes and configures the Region 6 (Stack RAM cached) and the memory to be protected
   */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER6;
+  MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = ((uint32_t)&__heap_end) & 0xFFFFFFE0;
-  MPU_InitStruct.LimitAddress = 0x341FFFFF;
+  MPU_InitStruct.LimitAddress = 0x3434FFFF;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);

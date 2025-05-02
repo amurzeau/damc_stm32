@@ -1,5 +1,7 @@
 #pragma once
+#include <CodecHardwareInterface.h>
 #include <stdint.h>
+
 #ifdef STM32F723xx
 #include <stm32f7xx.h>
 #include <stm32f7xx_hal_dma.h>
@@ -19,22 +21,22 @@ void DMA2_Stream3_IRQHandler(void);
 void DMA2_Stream5_IRQHandler(void);
 }
 
-class CodecDamcHATInit {
+class CodecDamcHATInit : public CodecHardwareInterface {
 public:
-	void init_i2c();
+	void init();
 	bool isAvailable();
 
-	void init();
+	void start(void* inBuffer, void* outBuffer, size_t size_bytes) override;
+
+	void setMicBias(bool enable) override;
+
+	void init_audio();
+
 	void init_sai();
 	void init_codec();
 
 	void startTxDMA(void* buffer, size_t nframes);
 	void startRxDMA(void* buffer, size_t nframes);
-	uint16_t getTxRemainingCount();
-	uint16_t getRxRemainingCount();
-	bool isDMAIsrFlagSet(bool insertWaitStates);
-
-	void setMicBias(bool enable);
 
 private:
 	void writeI2c(uint8_t address, uint8_t value);
