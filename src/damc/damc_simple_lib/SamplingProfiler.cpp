@@ -1,6 +1,4 @@
 #include "SamplingProfiler.h"
-#include "main.h"
-#include <csignal>
 #include PLATFORM_HEADER
 #include <Utils.h>
 
@@ -13,7 +11,6 @@ struct SampledCallstack {
 	uint32_t registers[16];
 	uint32_t callstack[1024];
 	uint32_t original_pc;
-	uint32_t dma_timestamp;
 };
 
 __attribute__((used)) struct SampledCallstack sampled_callstack_data;
@@ -24,7 +21,6 @@ extern uint8_t _estack;
 
 void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 	uint32_t timestamp = TIM2->CNT;
-	STMOD_UART4_RXD_GPIO_Port->BSRR |= STMOD_UART4_RXD_Pin;
 
 	uint32_t i;
 
@@ -116,7 +112,6 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 		sampled_callstack_data.original_pc = sp[6];
 	else
 		sampled_callstack_data.original_pc = 0;
-	sampled_callstack_data.dma_timestamp = DMA2_Stream3->NDTR;
 
 	for(i = 0; i < sizeof(sampled_callstack_data.callstack) / sizeof(sampled_callstack_data.callstack[0]) &&
 	           preempted_sp < (uint32_t*) &_estack;
@@ -124,7 +119,6 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 		sampled_callstack_data.callstack[i] = *preempted_sp;
 	}
 
-	STMOD_UART4_RXD_GPIO_Port->BSRR |= STMOD_UART4_RXD_Pin << 16;
 	sampled_callstack_data.callstack_present = timestamp;
 }
 
