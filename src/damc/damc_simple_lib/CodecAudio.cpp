@@ -6,14 +6,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef STM32F723xx
-#include <stm32f723e_discovery.h>
-#include <stm32f723e_discovery_audio.h>
-#elif defined(STM32N657xx)
-#include <stm32n6570_discovery.h>
-#include <stm32n6570_discovery_audio.h>
-#endif
-
 CodecAudio CodecAudio::instance;
 
 CodecAudio::CodecAudio() : useTlvAsMclkMaster(false), previousAvailableDmaIn(0), previousAvailableDmaOut(0) {}
