@@ -265,6 +265,10 @@ void SystemInit(void)
   SCB_NS->CPACR |= ((3UL << 20U)|(3UL << 22U));  /* set CP10 and CP11 Full Access */
 #endif /* __FPU_PRESENT && __FPU_USED */
 
+  /* Enable Loop and branch info cache */
+  SCB->CCR |= SCB_CCR_LOB_Msk;
+  __DSB();
+  __ISB();
 }
 
 /**
