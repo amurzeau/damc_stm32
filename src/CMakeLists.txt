@@ -30,7 +30,7 @@ else()
 	)
 endif()
 
-set(DISABLEFLOAT16 ON)
+set(DISABLEFLOAT16 OFF)
 add_subdirectory(CMSIS-DSP)
 target_link_libraries(CMSISDSP PUBLIC stm32cube_headers common_flags)
 

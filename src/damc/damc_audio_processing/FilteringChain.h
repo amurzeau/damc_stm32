@@ -11,6 +11,7 @@
 #include <Osc/OscContainer.h>
 #include <Osc/OscFixedArray.h>
 #include <Osc/OscVariable.h>
+#include <TinyDenoiserFilter.h>
 #include <array>
 #include <stddef.h>
 
@@ -36,6 +37,7 @@ private:
 	std::array<EqFilter, 10> eqFilters;
 	CompressorFilter compressorFilter;
 	ExpanderFilter expanderFilter;
+	TinyDenoiserFilter tinyDenoiserFilter;
 	PeakMeter peakMeter;
 
 	OscVariable<int32_t> delay;

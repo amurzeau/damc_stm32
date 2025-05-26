@@ -36,6 +36,7 @@ FilterChain::FilterChain(OscContainer* parent,
       },
       compressorFilter(this),
       expanderFilter(this),
+      tinyDenoiserFilter(this),
       peakMeter(parent, oscNumChannel, oscSampleRate),
       delay(this, "delay", 0),
       oscVolume(this, "balance", 1.0f),
@@ -96,6 +97,7 @@ void FilterChain::processSamples(float** samples, size_t numChannel, size_t coun
 
 	expanderFilter.processSamples(samples, count);
 	compressorFilter.processSamples(samples, count);
+	tinyDenoiserFilter.processSamples(samples, count);
 
 	//	for(uint32_t channel = 0; channel < numChannel; channel++) {
 	//		reverbFilters.at(channel).processSamples(samples[channel], count);
