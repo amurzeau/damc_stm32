@@ -1,5 +1,6 @@
 #include "OscRoot.h"
 #include "tinyosc.h"
+#include <float.h>
 #include <math.h>
 #include <spdlog/spdlog.h>
 #include <string.h>
@@ -186,7 +187,7 @@ void OscRoot::executeMessage(tosc_message_const* osc) {
 				argument = false;
 				break;
 			case 'I':
-				argument = INFINITY;
+				argument = FLT_MAX;
 				break;
 			case 'T':
 				argument = true;

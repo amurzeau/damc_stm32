@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <fastapprox/fastexp.h>
 #include <fastapprox/fastlog.h>
+#include <float.h>
 #include <math.h>
 #include <string.h>
 
@@ -40,7 +41,7 @@ void ExpanderFilter::processSamples(float** samples, size_t count) {
 		float makeUpGain = this->makeUpGain;
 
 		for(size_t i = 0; i < count; i++) {
-			float lowestCompressionDb = -INFINITY;
+			float lowestCompressionDb = -FLT_MAX;
 
 			for(size_t channel = 0; channel < numChannel; channel++) {
 				float dbGain = doCompression(samples[channel][i],
@@ -53,7 +54,7 @@ void ExpanderFilter::processSamples(float** samples, size_t count) {
 			// db to ratio
 			float largerCompressionRatio;
 
-			if(lowestCompressionDb != -INFINITY)
+			if(lowestCompressionDb > -FLT_MAX)
 				largerCompressionRatio = fastpow2(LOG10_VALUE_DIV_20 * (lowestCompressionDb + makeUpGain));
 			else
 				largerCompressionRatio = 0;
@@ -69,7 +70,7 @@ void ExpanderFilter::processSamples(float** samples, size_t count) {
 
 float ExpanderFilter::doCompression(float sample, float& y1, float& yL) {
 	if(sample == 0)
-		return -INFINITY;
+		return -FLT_MAX;
 
 	float dbSample = fastlog2(fabsf(sample)) / LOG10_VALUE_DIV_20;
 	levelDetector(gainComputer(dbSample), y1, yL);

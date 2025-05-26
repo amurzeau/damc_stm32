@@ -98,7 +98,7 @@ void CompressorFilter::processSamples(float** samples, size_t count) {
 float CompressorFilter::doCompression(float levelPeak, float levelLoudness) {
 	// Compression with gain computer in the log domain
 	// This is the log domain detector with feedforward design
-	float dbSample = -INFINITY;
+	float dbSample = -FLT_MAX;
 
 	if(enablePeak.get() && levelPeak != 0) {
 		dbSample = levelToDbPeak(levelPeak);
@@ -108,7 +108,7 @@ float CompressorFilter::doCompression(float levelPeak, float levelLoudness) {
 		dbSample = std::max(dbSample, lufsRealtimeLevel - lufsTarget.get());
 	}
 
-	if(dbSample != -INFINITY) {
+	if(dbSample > -FLT_MAX) {
 		levelDetectorSmoothing(gainComputer(dbSample));
 	} else {
 		// When a sample is 0, keep the current compression gain.
