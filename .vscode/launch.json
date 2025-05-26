@@ -55,8 +55,14 @@
 				"1"
 			],
 			"overrideLaunchCommands": [
+				"set *0x56028A4C=0xFFFFFF",
+				"set *0x52023080=0",
+				"set *0x52023100=0",
+				"set *0x52023180=0",
+				"set *0x52023200=0",
+				"set *0x52023280=0",
 				"-target-download",
-				"-interpreter-exec console \"monitor halt\""
+				"monitor halt\""
 			]
 		},
 		{

@@ -13,5 +13,10 @@
 		"name": "GCC stm32n6570-dk",
 		"toolchainFile": "src/cmake/toolchain_stm32n6570-dk.cmake",
 		"triple": "arm-stm32n6-eabi"
+	},
+	{
+		"name": "CLANG stm32n6570-dk",
+		"toolchainFile": "src/cmake/toolchain_stm32n6570-dk_llvm.cmake",
+		"triple": "arm-stm32n6-eabi-llvm"
 	}
 ]
