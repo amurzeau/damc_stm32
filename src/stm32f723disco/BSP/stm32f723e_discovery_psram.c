@@ -370,8 +370,8 @@ __weak void BSP_PSRAM_MspInit(SRAM_HandleTypeDef  *hsram, void *Params)
   HAL_DMA_Init(&dma_handle);
   
   /* NVIC configuration for DMA transfer complete interrupt */
-  HAL_NVIC_SetPriority(PSRAM_DMAx_IRQn, 0x0F, 0);
-  HAL_NVIC_EnableIRQ(PSRAM_DMAx_IRQn);   
+  //HAL_NVIC_SetPriority(PSRAM_DMAx_IRQn, 0x0F, 0);
+  //HAL_NVIC_EnableIRQ(PSRAM_DMAx_IRQn);
 }
 
 
