@@ -5,8 +5,13 @@
 
 int32_t Utils::stringviewToNumber(std::string_view s) {
 	int32_t number;
+#ifdef __clang__
+	auto result = std::from_chars(s.begin().base(), s.end().base(), number);
+	if(result.ec != std::errc{} || result.ptr != s.end().base()) {
+#else
 	auto result = std::from_chars(s.begin(), s.end(), number);
 	if(result.ec != std::errc{} || result.ptr != s.end()) {
+#endif
 		return 0;
 	}
 	return number;

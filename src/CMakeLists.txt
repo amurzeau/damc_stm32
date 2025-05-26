@@ -11,9 +11,24 @@ add_library(common_flags INTERFACE)
 target_compile_options(common_flags INTERFACE
 	-ggdb3
 	-gdwarf-4
-	"$<$<CONFIG:Release>:-Ofast>"
-	"$<$<CONFIG:Release>:-flto=auto>"
 )
+
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	target_compile_options(common_flags INTERFACE
+		-ggdb3
+		-gdwarf-4
+		"$<$<CONFIG:Release>:-Ofast>"
+		"$<$<CONFIG:Release>:-flto=auto>"
+	)
+else()
+	target_compile_options(common_flags INTERFACE
+		-ggdb3
+		-gdwarf-4
+		"$<$<CONFIG:Release>:-O3>"
+		"$<$<CONFIG:Release>:-ffast-math>"
+		"$<$<CONFIG:Release>:-flto=auto>"
+	)
+endif()
 
 set(DISABLEFLOAT16 ON)
 add_subdirectory(CMSIS-DSP)
@@ -52,7 +67,12 @@ target_compile_options(
 	-Wall
 	-Wdouble-promotion
 	-Wno-psabi
-	# memcpy is slower than 32 bits word copies
-	-fno-builtin-memcpy
-	-fno-tree-loop-distribute-patterns
 )
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	target_compile_options(
+		${TARGET_NAME} PRIVATE
+		# memcpy is slower than 32 bits word copies
+		-fno-builtin-memcpy
+		-fno-tree-loop-distribute-patterns
+	)
+endif()
