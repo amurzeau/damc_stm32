@@ -623,7 +623,7 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = ((uint32_t)&__heap_end) & 0xFFFFFFE0;
-  MPU_InitStruct.LimitAddress = 0x3434FFFF;
+  MPU_InitStruct.LimitAddress = 0x343bffff;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);

@@ -39,7 +39,7 @@ MEMORY
 {
   DTCM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
   ROM (xrw)  : ORIGIN = 0x34000000, LENGTH = 2944K
-  RAM (xrw)  : ORIGIN = 0x342e0000, LENGTH = 448K
+  RAM (xrw)  : ORIGIN = 0x342e0000, LENGTH = 896K
 }
 
 /* Highest address of the user mode stack */
