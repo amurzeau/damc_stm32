@@ -381,7 +381,9 @@ void CPUFrequencyScaling::updateCpuUsage() {
 
 	// CPU time in realtime interrupts
 	uint32_t cpu_usage_ratio_us = TimeMeasure::timeMeasure[TMI_UsbInterrupt].getMaxTimeUs() +
-	                              TimeMeasure::timeMeasure[TMI_AudioProcessing].getMaxTimeUs();
+	                              TimeMeasure::timeMeasure[TMI_AudioProcessing].getMaxTimeUs() +
+	                              TimeMeasure::timeMeasure[TMI_OtherIRQ].getMaxTimeUs() +
+	                              TimeMeasure::timeMeasure[TMI_MainLoop].getMaxTimeUs();
 
 	// Duration of the main loop task so far (if its too long, we will also increase CPU frequency to speed it up)
 	uint32_t main_loop_task_duration_us = TimeMeasure::timeMeasure[TMI_MainLoop].getOnGoingDuration();
