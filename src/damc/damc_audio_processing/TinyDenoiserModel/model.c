@@ -15,9 +15,7 @@
 #include "dsp/transform_functions.h"
 #include "dsp/window_functions.h"
 #include "model_weights.h"
-#include <arm_acle.h>
 #include <arm_math_types_f16.h>
-#include <arm_mve.h>
 #include <arm_vec_math_f16.h>
 #include <dsp/basic_math_functions_f16.h>
 #include <dsp/complex_math_functions_f16.h>
@@ -185,13 +183,17 @@ static void arm_nn_sigmoid_f16(const float16_t* pSrc, float16_t* pDst, uint32_t 
 		/* C = log(A) */
 
 		/* Calculate log and store result in destination buffer. */
-		//*pDst++ = 1.0f16 / (1.0f16 + (float16_t)expf(*pSrc++));
+		*pDst++ = 1.0f / (1.0f + expf(-(*pSrc++)));
+
+		// float32_t e = expf((*pSrc++));
+		//*pDst++ = e / (1.0f16 + e);
 
 		/* Decrement loop counter */
 		blkCnt--;
 	}
 }
 
+#if defined(ARM_MATH_MVE_FLOAT16) && !defined(ARM_MATH_AUTOVECTORIZE)
 __STATIC_INLINE f16x8_t vtanhq_hiprec_f16(f16x8_t val) {
 	f16x8_t x = vminnmq_f16(vmaxnmq_f16(val, vdupq_n_f16(-5.f16)), vdupq_n_f16(5.0f16));
 	f16x8_t exp2x = vexpq_f16(vmulq_n_f16(x, 2.f16));
@@ -200,6 +202,7 @@ __STATIC_INLINE f16x8_t vtanhq_hiprec_f16(f16x8_t val) {
 	f16x8_t tanh = vmulq_f16(num, vrecip_hiprec_f16(den));
 	return tanh;
 }
+#endif
 
 /**
   @brief         Floating-point vector of exp values.
@@ -554,7 +557,7 @@ FUNC_PREFIX void node_Sigmoid_151(const model_data_type_t X[1][257][1], model_da
 	   alpha = 0.0000000000000000000
 	   beta = 0.0000000000000000000
 	*/
-	arm_nn_sigmoid_f16(X, Y, 257);
+	arm_nn_sigmoid_f16((const model_data_type_t*) X, (model_data_type_t*) Y, 257);
 	return;
 	for(unsigned i0 = 0; i0 < 1; i0++) {
 		for(unsigned i1 = 0; i1 < 257; i1++) {
@@ -575,10 +578,27 @@ void tinydenoiser_model_init() {
 }
 
 void tinydenoiser_model_reset() {
-	arm_fill_f16(0.0f16, tensor_110, 256);
-	arm_fill_f16(0.0f16, tensor_109, 256);
-	arm_fill_f16(0.0f16, tensor_178, 256);
-	arm_fill_f16(0.0f16, tensor_177, 256);
+	arm_fill_f16(0.0f16, (model_data_type_t*) tensor_110, 256);
+	arm_fill_f16(0.0f16, (model_data_type_t*) tensor_109, 256);
+	arm_fill_f16(0.0f16, (model_data_type_t*) tensor_178, 256);
+	arm_fill_f16(0.0f16, (model_data_type_t*) tensor_177, 256);
+}
+
+void tinydenoiser_inference(const model_data_type_t tensor_input[1][257][1],
+                            model_data_type_t tensor_output[1][257][1]) {
+	// Model inference
+	node_Conv_0(tensor_input, tensor_ConvBnFusion_W_fc0_weight, tensor_ConvBnFusion_BN_B_norm0_bias, tu0.tensor_1);
+	node_Relu_2(tu0.tensor_1, tu1.tensor_1);
+
+	node_LSTM_78(tu1.tensor_2, tensor_97, tensor_98, tensor_99, tu0.tensor_5, tensor_109, tensor_110);
+
+	node_LSTM_144(tu0.tensor_4, tensor_165, tensor_166, tensor_167, tu1.tensor_5, tensor_177, tensor_178);
+
+	node_Conv_147(tu1.tensor_3, tensor_ConvBnFusion_W_fc1_weight, tensor_ConvBnFusion_BN_B_norm1_bias, tu0.tensor_1);
+
+	node_Relu_149(tu0.tensor_1, tu1.tensor_1);
+	node_Conv_150(tu1.tensor_1, tensor_fc2_weight, tensor_fc2_bias, tu0.tensor_1);
+	node_Sigmoid_151(tu0.tensor_1, tensor_output);
 }
 
 __attribute__((noinline)) void tinydenoiser_run(const float tensor_input[512], float tensor_output[512]) {
@@ -592,24 +612,11 @@ __attribute__((noinline)) void tinydenoiser_run(const float tensor_input[512], f
 	fft_data[256 * 2 + 1] = 0;
 	fft_data[1] = 0;
 
-	arm_cmplx_mag_squared_f32(fft_data, tu0.tensor_f32, 257);
+	arm_cmplx_mag_f32(fft_data, tu0.tensor_f32, 257);
 
 	arm_float_to_f16(tu0.tensor_f32, tu1.tensor_0, 257);
 
-	// Model inference
-
-	node_Conv_0(tu1.tensor_1, tensor_ConvBnFusion_W_fc0_weight, tensor_ConvBnFusion_BN_B_norm0_bias, tu0.tensor_1);
-	node_Relu_2(tu0.tensor_1, tu1.tensor_1);
-
-	node_LSTM_78(tu1.tensor_2, tensor_97, tensor_98, tensor_99, tu0.tensor_5, tensor_109, tensor_110);
-
-	node_LSTM_144(tu0.tensor_4, tensor_165, tensor_166, tensor_167, tu1.tensor_5, tensor_177, tensor_178);
-
-	node_Conv_147(tu1.tensor_3, tensor_ConvBnFusion_W_fc1_weight, tensor_ConvBnFusion_BN_B_norm1_bias, tu0.tensor_1);
-
-	node_Relu_149(tu0.tensor_1, tu1.tensor_1);
-	node_Conv_150(tu1.tensor_1, tensor_fc2_weight, tensor_fc2_bias, tu0.tensor_1);
-	node_Sigmoid_151(tu0.tensor_1, tu1.tensor_1);
+	tinydenoiser_inference(tu1.tensor_1, tu1.tensor_1);
 
 	arm_f16_to_float(tu1.tensor_0, tu0.tensor_f32, 257);
 
