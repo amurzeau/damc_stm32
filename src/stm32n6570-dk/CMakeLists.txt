@@ -37,6 +37,8 @@ file(GLOB_RECURSE FSBL_SOURCE_LIST
 	Middlewares/ST/STM32_ExtMem_Manager/*.h
 	Middlewares/ST/STM32_ExtMem_Manager/*.cpp
 )
+# Exclude template files
+list(FILTER FSBL_SOURCE_LIST EXCLUDE REGEX .*/Source/Templates/.*)
 
 add_executable(${TARGET_NAME}_bootloader ${FSBL_SOURCE_LIST})
 set_target_properties(${TARGET_NAME}_bootloader PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
@@ -88,6 +90,8 @@ file(GLOB_RECURSE SOURCE_LIST
 	Drivers/*.h
 	Drivers/*.cpp
 )
+# Exclude template files
+list(FILTER SOURCE_LIST EXCLUDE REGEX .*/Source/Templates/.*)
 
 add_library(stm32cube INTERFACE)
 target_sources(stm32cube INTERFACE ${SOURCE_LIST})
