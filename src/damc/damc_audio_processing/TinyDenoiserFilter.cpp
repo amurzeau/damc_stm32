@@ -1,9 +1,9 @@
 #include "TinyDenoiserFilter.h"
 
+#if defined(STM32N657xx)
+
 #include <algorithm>
-#include <arm_mve.h>
 #include <assert.h>
-#include <dsp/support_functions_f16.h>
 #include <math.h>
 #include <string.h>
 
@@ -107,3 +107,5 @@ void TinyDenoiserFilter::modelRunStatic(uv_async_t* handle) {
 void TinyDenoiserFilter::modelRun() {
 	tinydenoiser_run(modelWindowInput.data(), modelWindowOutput.data());
 }
+
+#endif

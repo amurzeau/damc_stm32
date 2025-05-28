@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(STM32N657xx)
+
 #ifndef __x86_64
 #include <arm_mve.h>
 #endif
@@ -18,4 +20,6 @@ void tinydenoiser_run(const float tensor_input[512], float tensor_output[512]);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

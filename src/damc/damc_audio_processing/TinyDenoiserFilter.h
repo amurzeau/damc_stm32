@@ -1,11 +1,14 @@
 #pragma once
 
+#include <stddef.h>
+
+#if defined(STM32N657xx)
+
 #include "uv.h"
 #include <BiquadFilter.h>
 #include <Osc/OscContainer.h>
 #include <Osc/OscVariable.h>
 #include <array>
-#include <stddef.h>
 
 class TinyDenoiserFilter : public OscContainer {
 public:
@@ -36,3 +39,13 @@ private:
 
 	uv_async_t asyncRunModel;
 };
+
+#else
+
+class OscContainer;
+class TinyDenoiserFilter {
+public:
+	TinyDenoiserFilter(OscContainer* parent) {}
+	void processSamples(float** samples, size_t count) {}
+};
+#endif

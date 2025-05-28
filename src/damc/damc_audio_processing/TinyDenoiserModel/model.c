@@ -10,6 +10,9 @@
 
 */
 #include "model.h"
+
+#if defined(STM32N657xx)
+
 #include <math.h>
 
 #include "dsp/transform_functions.h"
@@ -627,3 +630,5 @@ __attribute__((noinline)) void tinydenoiser_run(const float tensor_input[512], f
 	fft_data[1] = fft_data[256 * 2];
 	arm_rfft_fast_f32(&fft_instance, fft_data, tensor_output, 1);
 }
+
+#endif
