@@ -38,6 +38,7 @@ ENTRY(Reset_Handler)
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 _sstack = _estack - _Min_Stack_Size;
 
+
 _Min_Heap_Size = 0x200; /* required amount of heap */
 _Min_Stack_Size = 0x800; /* required amount of stack */
 
@@ -45,7 +46,7 @@ _Min_Stack_Size = 0x800; /* required amount of stack */
 MEMORY
 {
   ROM    (xrw)    : ORIGIN = 0x34180400,   LENGTH = 255K
-  RAM    (xrw)    : ORIGIN = 0x341C0000,   LENGTH = 256K
+  RAM    (xrw)    : ORIGIN = 0x30000000,   LENGTH = 128K
 }
 
 /* Sections */
@@ -58,6 +59,31 @@ SECTIONS
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >ROM
+
+  /* Used by the startup to initialize data */
+  _sidata = LOADADDR(.data);
+
+  /* Initialized data sections into "RAM" Ram type memory */
+  .data :
+  {
+    . = ALIGN(4);
+    _sdata = .;        /* create a global symbol at data start */
+    *(.data)           /* .data sections */
+    *(.data*)          /* .data* sections */
+    */STM32_ExtMem_Manager/*.o (.text .text*)
+    *(.text.BOOT_Application)
+    *(.text.CopyApplication)
+    *(.text.JumpToApplication)
+    *(.text.HAL_SuspendTick)
+    *(.text.SCB_DisableICache)
+    *(.text.SCB_DisableDCache)
+    *(.text.BOOT_GetApplicationVectorTable)
+    *(.text.BOOT_GetApplicationSize)
+
+    . = ALIGN(4);
+    _edata = .;        /* define a global symbol at data end */
+
+  } >RAM AT> ROM
 
   /* The program code and other data into "RAM" Ram type memory */
   .text :
@@ -131,22 +157,6 @@ SECTIONS
     PROVIDE_HIDDEN (__fini_array_end = .);
     . = ALIGN(4);
   } >ROM
-
-  /* Used by the startup to initialize data */
-  _sidata = LOADADDR(.data);
-
-  /* Initialized data sections into "RAM" Ram type memory */
-  .data :
-  {
-    . = ALIGN(4);
-    _sdata = .;        /* create a global symbol at data start */
-    *(.data)           /* .data sections */
-    *(.data*)          /* .data* sections */
-
-    . = ALIGN(4);
-    _edata = .;        /* define a global symbol at data end */
-
-  } >RAM AT> ROM
 
   .noncacheable :
   {

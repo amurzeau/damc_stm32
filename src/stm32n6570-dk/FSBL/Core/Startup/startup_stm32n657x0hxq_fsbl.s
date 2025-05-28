@@ -62,6 +62,18 @@ Reset_Handler:
   msr   MSPLIM, r0
   ldr   r0, =_estack
   mov   sp, r0          /* set stack pointer */
+
+
+/* Clear D-TCM */
+  ldr R0, = 0x30000000
+  ldr R1, = 0x30020000
+  mov R2, #0
+clear_dtcm:
+  str R2, [R0]
+  add R0, R0, #4
+  cmp R0, R1
+  bne clear_dtcm
+
 /* Call the clock system initialization function.*/
   bl  SystemInit
 

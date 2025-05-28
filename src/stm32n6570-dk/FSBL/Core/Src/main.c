@@ -60,6 +60,12 @@ static void MX_XSPI2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+uint32_t BOOT_GetApplicationSize(uint32_t img_addr)
+{
+  uint32_t* img_header = (uint32_t*) img_addr;
+  return img_header[2];
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -103,6 +109,20 @@ int main(void)
   MX_XSPI2_Init();
   MX_EXTMEM_MANAGER_Init();
   /* USER CODE BEGIN 2 */
+
+  // Enable all SRAM to load the application
+
+  __HAL_RCC_RAMCFG_CLK_ENABLE();
+
+  // Enable NPU, this required to access AXISRAM3-6
+  RCC->AHB5ENSR = RCC_AHB5ENSR_NPUENS;
+  RCC->MEMENSR = RCC_MEMENR_AXISRAM3EN | RCC_MEMENR_AXISRAM4EN | RCC_MEMENR_AXISRAM5EN | RCC_MEMENR_AXISRAM6EN;
+
+  // Release SRAM resets
+  RAMCFG_SRAM3_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM4_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM5_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM6_AXI->CR &= ~RAMCFG_CR_SRAMSD;
 
   /* USER CODE END 2 */
 
@@ -417,13 +437,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(User_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PO1 HEXASPI_NCS_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|HEXASPI_NCS_Pin;
+  /*Configure GPIO pin : HEXASPI_NCS_Pin */
+  GPIO_InitStruct.Pin = HEXASPI_NCS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P1;
-  HAL_GPIO_Init(GPIOO, &GPIO_InitStruct);
+  HAL_GPIO_Init(HEXASPI_NCS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : STMOD_IO2_Pin */
   GPIO_InitStruct.Pin = STMOD_IO2_Pin;

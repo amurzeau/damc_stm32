@@ -63,6 +63,7 @@ BOOTStatus_TypeDef BOOT_Application(void)
     {
       /* jump on the application */
       retr = JumpToApplication();
+      while(1);
     }
   }
   return retr;

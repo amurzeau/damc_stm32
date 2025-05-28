@@ -64,7 +64,7 @@ typedef enum {
  *
  * @return @ref BOOTStatus_TypeDef
  **/
- BOOTStatus_TypeDef BOOT_Application(void);
+__attribute__((noinline)) __attribute__((section(".text.BOOT_Application"))) extern BOOTStatus_TypeDef BOOT_Application(void);
  
  uint32_t BOOT_GetApplicationSize(uint32_t img_addr);
  uint32_t BOOT_GetApplicationVectorTable(void);

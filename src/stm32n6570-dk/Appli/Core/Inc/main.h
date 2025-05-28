@@ -85,6 +85,8 @@ void Error_Handler(void);
 #define SAI1_SD_A_GPIO_Port GPIOB
 #define SAI1_CLK_A_Pin GPIO_PIN_6
 #define SAI1_CLK_A_GPIO_Port GPIOB
+#define GREEN_LED_Pin GPIO_PIN_1
+#define GREEN_LED_GPIO_Port GPIOO
 #define SAI1_MCLK_A_Pin GPIO_PIN_7
 #define SAI1_MCLK_A_GPIO_Port GPIOG
 

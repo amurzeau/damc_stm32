@@ -44,12 +44,17 @@ _Min_Stack_Size = 0x2000; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (xrw)    : ORIGIN = 0x34000400,   LENGTH = 2047K
+  RAM    (xrw)    : ORIGIN = 0x34000000,   LENGTH = 2048K
 }
 
 /* Sections */
 SECTIONS
 {
+  .image_header :
+  {
+  	KEEP(*(.image_header))
+  } >RAM
+
   /* The startup code into "RAM" Ram type memory */
   .isr_vector :
   {
@@ -162,6 +167,8 @@ SECTIONS
     *(.gnu.sgstubs*)   /* Secure Gateway stubs */
     . = ALIGN(4);
   } >RAM
+  
+  _applicationsize = . - ORIGIN(RAM);
 
   /* Uninitialized data section into "RAM" Ram type memory */
   . = ALIGN(4);
