@@ -174,3 +174,24 @@ int _execve(char *name, char **argv, char **env)
   errno = ENOMEM;
   return -1;
 }
+
+
+#ifdef FDEV_SETUP_STREAM
+static int sample_putc(char c, FILE *file)
+{
+  (void)file; /* Not used in this function */
+  return c;
+}
+
+static int sample_getc(FILE *file)
+{
+  unsigned char c = 0;
+  (void)file; /* Not used in this function */
+  return c;
+}
+
+static FILE __stdio = FDEV_SETUP_STREAM(sample_putc, sample_getc, NULL, _FDEV_SETUP_RW);
+FILE *const stdin = &__stdio;
+__strong_reference(stdin, stdout);
+__strong_reference(stdin, stderr);
+#endif

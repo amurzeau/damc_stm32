@@ -34,18 +34,23 @@
 /* Entry Point */
 ENTRY(Reset_Handler)
 
+/* Memories definition */
+MEMORY
+{
+  DTCM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
+  ROM (xrw)  : ORIGIN = 0x34000000, LENGTH = 2944K
+  RAM (xrw)  : ORIGIN = 0x342e0000, LENGTH = 896K
+}
+
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 _sstack = _estack - _Min_Stack_Size;
 
-_Min_Heap_Size = 0x20000; /* required amount of heap */
+_Min_Heap_Size = 128*1024; /* required amount of heap */
 _Min_Stack_Size = 0x2000; /* required amount of stack */
 
-/* Memories definition */
-MEMORY
-{
-  RAM    (xrw)    : ORIGIN = 0x34000000,   LENGTH = 2048K
-}
+/* Heap end address */
+__heap_end = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size; /* end of heap Ram type memory */
 
 /* Sections */
 SECTIONS
@@ -53,7 +58,7 @@ SECTIONS
   .image_header :
   {
   	KEEP(*(.image_header))
-  } >RAM
+  } >ROM
 
   /* The startup code into "RAM" Ram type memory */
   .isr_vector :
@@ -61,7 +66,7 @@ SECTIONS
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
-  } >RAM
+  } >ROM
 
   /* The program code and other data into "RAM" Ram type memory */
   .text :
@@ -80,7 +85,7 @@ SECTIONS
 
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
-  } >RAM
+  } >ROM
 
   /* Constant data into "RAM" Ram type memory */
   .rodata :
@@ -89,34 +94,34 @@ SECTIONS
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
-  } >RAM
+  } >ROM
 
-  .ARM.extab   (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .ARM.extab    : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
    {
-     . = ALIGN(4);
+    . = ALIGN(4);
     *(.ARM.extab* .gnu.linkonce.armextab.*)
     . = ALIGN(4);
-  } >RAM
+  } >ROM
 
-  .ARM (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .ARM  : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
    {
-     . = ALIGN(4);
+    . = ALIGN(4);
     __exidx_start = .;
     *(.ARM.exidx*)
     __exidx_end = .;
     . = ALIGN(4);
-  } >RAM
+  } >ROM
 
-  .preinit_array     (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .preinit_array      : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__preinit_array_start = .);
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
     . = ALIGN(4);
-  } >RAM
+  } >ROM
 
-  .init_array (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .init_array  : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__init_array_start = .);
@@ -124,9 +129,9 @@ SECTIONS
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
     . = ALIGN(4);
-  } >RAM
+  } >ROM
 
-  .fini_array (READONLY) : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
+  .fini_array  : /* The READONLY keyword is only supported in GCC11 and later, remove it if using GCC10 or earlier. */
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__fini_array_start = .);
@@ -134,7 +139,7 @@ SECTIONS
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
     . = ALIGN(4);
-  } >RAM
+  } >ROM
 
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
@@ -150,25 +155,28 @@ SECTIONS
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
 
-  } >RAM
+  } >RAM AT> ROM
 
   .noncacheable :
   {
     . = ALIGN(8);
     __snoncacheable = .;/* create symbol for start of section */
-    KEEP(*(noncacheable_buffer))
+    KEEP(*(.noncacheable))
     . = ALIGN(8);
     __enoncacheable = .;  /* create symbol for end of section */
   } > RAM
+
 
   .gnu.sgstubs :
   {
     . = ALIGN(4);
     *(.gnu.sgstubs*)   /* Secure Gateway stubs */
     . = ALIGN(4);
-  } >RAM
-  
-  _applicationsize = . - ORIGIN(RAM);
+  } >ROM
+
+  /* Metadata used for the image header */
+  _applicationsize = . - ORIGIN(ROM);
+  _applicationstart = ORIGIN(ROM);
 
   /* Uninitialized data section into "RAM" Ram type memory */
   . = ALIGN(4);
@@ -190,6 +198,7 @@ SECTIONS
   ._user_heap_stack :
   {
     . = ALIGN(8);
+	__heap_start = .; /* start of heap */
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;

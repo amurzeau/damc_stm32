@@ -56,7 +56,9 @@
   */
 
 #include "stm32n6xx.h"
+#if defined(USER_TZ_SAU_SETUP)
 #include "partition_stm32n6xx.h"  /* Trustzone-M core secure attributes */
+#endif /* USER_TZ_SAU_SETUP */
 #include <math.h>
 
 /**
@@ -175,8 +177,6 @@ extern void *g_pfnVectors;
 
 void SystemInit(void)
 {
-  /* SAU/IDAU, FPU and Interrupts secure/non-secure allocation settings */
-  TZ_SAU_Setup();
 
   /* Configure the Vector Table location -------------------------------------*/
 #if defined(USER_VECT_TAB_ADDRESS)
@@ -185,6 +185,38 @@ void SystemInit(void)
   SCB->VTOR = INTVECT_START;
 #endif  /* USER_VECT_TAB_ADDRESS */
 
+  /* RNG reset */
+  RCC->AHB3RSTSR = RCC_AHB3RSTSR_RNGRSTS;
+  RCC->AHB3RSTCR = RCC_AHB3RSTCR_RNGRSTC;
+  /* Deactivate RNG clock */
+  RCC->AHB3ENCR = RCC_AHB3ENCR_RNGENC;
+
+  /* Clear SAU regions */
+  SAU->RNR = 0;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+  SAU->RNR = 1;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+  SAU->RNR = 2;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+  SAU->RNR = 3;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+  SAU->RNR = 4;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+  SAU->RNR = 5;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+  SAU->RNR = 6;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+  SAU->RNR = 7;
+  SAU->RBAR = 0;
+  SAU->RLAR = 0;
+
   /* System configuration setup */
   RCC->APB4ENSR2 = RCC_APB4ENSR2_SYSCFGENS;
   /* Delay after an RCC peripheral clock enabling */
@@ -192,10 +224,43 @@ void SystemInit(void)
 
   /* Set default Vector Table location after system reset or return from Standby */
   SYSCFG->INITSVTORCR = SCB->VTOR;
+
+  /* Enable VDDADC CLAMP */
+  PWR->SVMCR3 |= PWR_SVMCR3_ASV;
+  PWR->SVMCR3 |= PWR_SVMCR3_AVMEN;
+  /* read back the register to make sure that the transaction has taken place */
+  (void) PWR->SVMCR3;
+  /* enable VREF */
+  RCC->APB4ENR1 |= RCC_APB4ENR1_VREFBUFEN;
+
+  /* RCC Fix to lower power consumption */
+  RCC->APB4ENR2 |= 0x00000010UL;
+  (void) RCC->APB4ENR2;
+  RCC->APB4ENR2 &= ~(0x00000010UL);
+
+  /* XSPI2 & XSPIM reset                                  */
+  RCC->AHB5RSTSR = RCC_AHB5RSTSR_XSPIMRSTS | RCC_AHB5RSTSR_XSPI2RSTS;
+  RCC->AHB5RSTCR = RCC_AHB5RSTCR_XSPIMRSTC | RCC_AHB5RSTCR_XSPI2RSTC;
+
+  /* TIM2 reset */
+  RCC->APB1RSTSR1 = RCC_APB1RSTSR1_TIM2RSTS;
+  RCC->APB1RSTCR1 = RCC_APB1RSTCR1_TIM2RSTC;
+  /* Deactivate TIM2 clock */
+  RCC->APB1ENCR1 = RCC_APB1ENCR1_TIM2ENC;
+
+  /* Deactivate GPIOG clock */
+  RCC->AHB4ENCR = RCC_AHB4ENCR_GPIOGENC;
+
   /* Read back the value to make sure it is written before deactivating SYSCFG */
   (void) SYSCFG->INITSVTORCR;
   /* Deactivate SYSCFG clock */
   RCC->APB4ENCR2 = RCC_APB4ENCR2_SYSCFGENC;
+
+#if defined(USER_TZ_SAU_SETUP)
+  /* SAU/IDAU, FPU and Interrupts secure/non-secure allocation settings */
+  TZ_SAU_Setup();
+#endif /* USER_TZ_SAU_SETUP */
+
   /* FPU settings ------------------------------------------------------------*/
 #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
   SCB->CPACR |= ((3UL << 20U)|(3UL << 22U));  /* set CP10 and CP11 Full Access */
@@ -203,6 +268,10 @@ void SystemInit(void)
   SCB_NS->CPACR |= ((3UL << 20U)|(3UL << 22U));  /* set CP10 and CP11 Full Access */
 #endif /* __FPU_PRESENT && __FPU_USED */
 
+  /* Enable Loop and branch info cache */
+  SCB->CCR |= SCB_CCR_LOB_Msk;
+  __DSB();
+  __ISB();
 }
 
 /**

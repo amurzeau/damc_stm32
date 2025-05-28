@@ -23,7 +23,9 @@
  */
 
 .syntax unified
+#ifndef __clang__
 .arch armv8.1-m.main
+#endif
 .fpu softvfp
 .thumb
 

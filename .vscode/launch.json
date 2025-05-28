@@ -77,7 +77,11 @@
 				"enabled": true,
 				"samplesPerSecond": 1
 			},
-			"svdPath": "STM32N657.svd"
+			"svdPath": "STM32N657.svd",
+			"serverArgs": [
+				"-m",
+				"1"
+			]
 		}
 	]
 }

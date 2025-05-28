@@ -245,7 +245,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.IC2Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
   RCC_ClkInitStruct.IC2Selection.ClockDivider = 2;
   RCC_ClkInitStruct.IC6Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-  RCC_ClkInitStruct.IC6Selection.ClockDivider = 256;
+  RCC_ClkInitStruct.IC6Selection.ClockDivider = 1;
   RCC_ClkInitStruct.IC11Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
   RCC_ClkInitStruct.IC11Selection.ClockDivider = 1;
 
@@ -340,26 +340,11 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOP_CLK_ENABLE();
   __HAL_RCC_GPIOO_CLK_ENABLE();
-  __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPION_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(STMOD_IO1_GPIO_Port, STMOD_IO1_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(STMOD_IO3_GPIO_Port, STMOD_IO3_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(STMOD_IO2_GPIO_Port, STMOD_IO2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(STMOD_IO4_GPIO_Port, STMOD_IO4_Pin, GPIO_PIN_RESET);
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin : I2C1_SDA_Pin */
   GPIO_InitStruct.Pin = I2C1_SDA_Pin;
@@ -393,13 +378,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : STMOD_IO1_Pin */
-  GPIO_InitStruct.Pin = STMOD_IO1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(STMOD_IO1_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : I2C1_SCL_Pin */
   GPIO_InitStruct.Pin = I2C1_SCL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
@@ -424,57 +402,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF11_SDMMC2;
   HAL_GPIO_Init(SD_D3_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : STMOD_IO3_Pin */
-  GPIO_InitStruct.Pin = STMOD_IO3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(STMOD_IO3_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : User_Pin */
-  GPIO_InitStruct.Pin = User_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(User_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : HEXASPI_NCS_Pin */
-  GPIO_InitStruct.Pin = HEXASPI_NCS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P1;
-  HAL_GPIO_Init(HEXASPI_NCS_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : STMOD_IO2_Pin */
-  GPIO_InitStruct.Pin = STMOD_IO2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(STMOD_IO2_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PN12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P2;
-  HAL_GPIO_Init(GPION, &GPIO_InitStruct);
-
   /*Configure GPIO pin : UCPD1_VSENSE_Pin */
   GPIO_InitStruct.Pin = UCPD1_VSENSE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(UCPD1_VSENSE_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : STMOD_IO4_Pin */
-  GPIO_InitStruct.Pin = STMOD_IO4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(STMOD_IO4_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure the EXTI line attribute */
-  HAL_EXTI_ConfigLineAttributes(EXTI_LINE_13, EXTI_LINE_SEC);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

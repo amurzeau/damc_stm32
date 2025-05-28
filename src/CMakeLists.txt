@@ -35,12 +35,12 @@ add_subdirectory(CMSIS-DSP)
 target_link_libraries(CMSISDSP PUBLIC stm32cube_headers common_flags)
 
 
-#file(GLOB_RECURSE SOURCE_LIST
-#	USBClass/*.c USBClass/*.h USBClass/*.cpp
-#	damc/*.c damc/*.h damc/*.cpp
-#	memtester/*.c memtester/*.h memtester/*.cpp
-#    Fonts/*.c Fonts/*.h Fonts/*.cpp
-#)
+file(GLOB_RECURSE SOURCE_LIST
+	USBClass/*.c USBClass/*.h USBClass/*.cpp
+	damc/*.c damc/*.h damc/*.cpp
+	memtester/*.c memtester/*.h memtester/*.cpp
+    Fonts/*.c Fonts/*.h Fonts/*.cpp
+)
 
 add_executable(${TARGET_NAME} ${SOURCE_LIST})
 add_st_target_properties(${TARGET_NAME})
