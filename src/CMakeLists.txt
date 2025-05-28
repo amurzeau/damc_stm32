@@ -35,12 +35,12 @@ add_subdirectory(CMSIS-DSP)
 target_link_libraries(CMSISDSP PUBLIC stm32cube_headers common_flags)
 
 
-file(GLOB_RECURSE SOURCE_LIST
-	USBClass/*.c USBClass/*.h USBClass/*.cpp
-	damc/*.c damc/*.h damc/*.cpp
-	memtester/*.c memtester/*.h memtester/*.cpp
-    Fonts/*.c Fonts/*.h Fonts/*.cpp
-)
+#file(GLOB_RECURSE SOURCE_LIST
+#	USBClass/*.c USBClass/*.h USBClass/*.cpp
+#	damc/*.c damc/*.h damc/*.cpp
+#	memtester/*.c memtester/*.h memtester/*.cpp
+#    Fonts/*.c Fonts/*.h Fonts/*.cpp
+#)
 
 add_executable(${TARGET_NAME} ${SOURCE_LIST})
 add_st_target_properties(${TARGET_NAME})
@@ -74,5 +74,24 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		# memcpy is slower than 32 bits word copies
 		-fno-builtin-memcpy
 		-fno-tree-loop-distribute-patterns
+	)
+endif()
+
+if(TARGET ${TARGET_NAME}_bootloader)
+	# Generate concatenated image with
+	# FSBL at first address
+	# Appli at address 0x10000 (64KB)
+	add_custom_command(
+		OUTPUT ${TARGET_NAME}-nor.bin
+		DEPENDS
+			$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin
+			${TARGET_NAME}
+		COMMAND
+			   dd if=$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin of=${TARGET_NAME}-nor.bin status=none
+			&& dd if=${TARGET_NAME}.bin of=${TARGET_NAME}-nor.bin bs=1024 seek=64 conv=notrunc status=none
+	)
+	add_custom_target(${TARGET_NAME}-nor
+		ALL
+		DEPENDS ${TARGET_NAME}-nor.bin
 	)
 endif()
