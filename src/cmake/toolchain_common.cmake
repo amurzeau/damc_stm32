@@ -57,4 +57,16 @@ macro(define_toolchain ARG_TARGET_NAME COMPILER_FLAGS)
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3" CACHE STRING "Flags used by the CXX compiler during RELEASE builds.")
 
 	set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
+	# Find signing tool for boot flash models
+	file(GLOB SIGNINGTOOL_DIRECTORIES
+		"C:/ST/STM32CubeIDE_*/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.*/tools/bin/"
+		"/opt/st/stm32cubeide*/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.*/tools/bin/"
+		"/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.*/tools/bin/"
+	)
+	find_program(STM32_SIGNINGTOOL_CLI
+		NAMES STM32_SigningTool_CLI
+		PATHS
+			${SIGNINGTOOL_DIRECTORIES}
+	)
 endmacro()
