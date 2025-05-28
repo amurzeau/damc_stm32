@@ -18,13 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "extmem_manager.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <usb_device.h>
-#include "AudioCApi.h"
-#include "Tracing.h"
-#include <stm32n6570_discovery.h>
 
 /* USER CODE END Includes */
 
@@ -45,9 +42,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-TIM_HandleTypeDef htim2;
-
-PCD_HandleTypeDef hpcd_USB_OTG_HS1;
+XSPI_HandleTypeDef hxspi2;
 
 /* USER CODE BEGIN PV */
 
@@ -56,10 +51,8 @@ PCD_HandleTypeDef hpcd_USB_OTG_HS1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
-static void MPU_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USB1_OTG_HS_PCD_Init(void);
-static void MX_TIM2_Init(void);
+static void MX_XSPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -78,18 +71,6 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
-  __HAL_RCC_SYSCFG_CLK_ENABLE();
-  RCC->MEMENR |= RCC_MEMENR_AXISRAM3EN | RCC_MEMENR_AXISRAM4EN | RCC_MEMENR_AXISRAM5EN | RCC_MEMENR_AXISRAM6EN;
-
-  RAMCFG_SRAM2_AXI->CR &= ~RAMCFG_CR_SRAMSD;
-  RAMCFG_SRAM3_AXI->CR &= ~RAMCFG_CR_SRAMSD;
-  RAMCFG_SRAM4_AXI->CR &= ~RAMCFG_CR_SRAMSD;
-  RAMCFG_SRAM5_AXI->CR &= ~RAMCFG_CR_SRAMSD;
-  RAMCFG_SRAM6_AXI->CR &= ~RAMCFG_CR_SRAMSD;
-
-  /* Allow caches to be activated. Default value is 1, but the current boot sets it to 0 */
-  MEMSYSCTL->MSCR |= MEMSYSCTL_MSCR_DCACTIVE_Msk | MEMSYSCTL_MSCR_ICACTIVE_Msk;
-
   /* USER CODE END 1 */
 
   /* Enable the CPU Cache */
@@ -101,13 +82,9 @@ int main(void)
   SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
-
-  /* MPU Configuration--------------------------------------------------------*/
-  MPU_Config();
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  BSP_SMPS_Init(SMPS_VOLTAGE_OVERDRIVE);
 
   /* USER CODE END Init */
 
@@ -123,20 +100,17 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
+  MX_XSPI2_Init();
+  MX_EXTMEM_MANAGER_Init();
   /* USER CODE BEGIN 2 */
-
-  TRACING_init();
-  FPU->FPDSCR |= FPU_FPDSCR_FZ_Msk;
-  DAMC_init();
-
-  DAMC_start();
-
-  // Start USB after to ensure audio processing IRQ is running
-  MX_USB_DEVICE_Init();
 
   /* USER CODE END 2 */
 
+  /* Launch the application */
+  if (BOOT_OK != BOOT_Application())
+  {
+    Error_Handler();
+  }
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -144,7 +118,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    DAMC_mainLoop();
   }
   /* USER CODE END 3 */
 }
@@ -252,7 +225,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.IC2Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
   RCC_ClkInitStruct.IC2Selection.ClockDivider = 2;
   RCC_ClkInitStruct.IC6Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-  RCC_ClkInitStruct.IC6Selection.ClockDivider = 1;
+  RCC_ClkInitStruct.IC6Selection.ClockDivider = 256;
   RCC_ClkInitStruct.IC11Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
   RCC_ClkInitStruct.IC11Selection.ClockDivider = 1;
 
@@ -281,85 +254,53 @@ void PeriphCommonClock_Config(void)
 }
 
 /**
-  * @brief TIM2 Initialization Function
+  * @brief XSPI2 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM2_Init(void)
+static void MX_XSPI2_Init(void)
 {
 
-  /* USER CODE BEGIN TIM2_Init 0 */
+  /* USER CODE BEGIN XSPI2_Init 0 */
 
-  /* USER CODE END TIM2_Init 0 */
+  /* USER CODE END XSPI2_Init 0 */
 
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  XSPIM_CfgTypeDef sXspiManagerCfg = {0};
 
-  /* USER CODE BEGIN TIM2_Init 1 */
-  uint32_t timer_frequency = HAL_RCC_GetSysClockFreq() / (1UL << LL_RCC_GetTIMPrescaler());
+  /* USER CODE BEGIN XSPI2_Init 1 */
 
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = (timer_frequency / 1000000) - 1;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  /* USER CODE END XSPI2_Init 1 */
+  /* XSPI2 parameter configuration*/
+  hxspi2.Instance = XSPI2;
+  hxspi2.Init.FifoThresholdByte = 1;
+  hxspi2.Init.MemoryMode = HAL_XSPI_SINGLE_MEM;
+  hxspi2.Init.MemoryType = HAL_XSPI_MEMTYPE_MACRONIX;
+  hxspi2.Init.MemorySize = HAL_XSPI_SIZE_1GB;
+  hxspi2.Init.ChipSelectHighTimeCycle = 2;
+  hxspi2.Init.FreeRunningClock = HAL_XSPI_FREERUNCLK_DISABLE;
+  hxspi2.Init.ClockMode = HAL_XSPI_CLOCK_MODE_0;
+  hxspi2.Init.WrapSize = HAL_XSPI_WRAP_NOT_SUPPORTED;
+  hxspi2.Init.ClockPrescaler = 0;
+  hxspi2.Init.SampleShifting = HAL_XSPI_SAMPLE_SHIFT_NONE;
+  hxspi2.Init.DelayHoldQuarterCycle = HAL_XSPI_DHQC_ENABLE;
+  hxspi2.Init.ChipSelectBoundary = HAL_XSPI_BONDARYOF_NONE;
+  hxspi2.Init.MaxTran = 0;
+  hxspi2.Init.Refresh = 0;
+  hxspi2.Init.MemorySelect = HAL_XSPI_CSSEL_NCS1;
+  if (HAL_XSPI_Init(&hxspi2) != HAL_OK)
   {
     Error_Handler();
   }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  sXspiManagerCfg.nCSOverride = HAL_XSPI_CSSEL_OVR_NCS1;
+  sXspiManagerCfg.IOPort = HAL_XSPIM_IOPORT_2;
+  sXspiManagerCfg.Req2AckTime = 1;
+  if (HAL_XSPIM_Config(&hxspi2, &sXspiManagerCfg, HAL_XSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
+  /* USER CODE BEGIN XSPI2_Init 2 */
 
-  HAL_TIM_Base_Start(&htim2);
-
-  /* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
-  * @brief USB1_OTG_HS Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USB1_OTG_HS_PCD_Init(void)
-{
-
-  /* USER CODE BEGIN USB1_OTG_HS_Init 0 */
-
-  /* USER CODE END USB1_OTG_HS_Init 0 */
-
-  /* USER CODE BEGIN USB1_OTG_HS_Init 1 */
-
-  /* USER CODE END USB1_OTG_HS_Init 1 */
-  hpcd_USB_OTG_HS1.Instance = USB1_OTG_HS;
-  hpcd_USB_OTG_HS1.Init.dev_endpoints = 9;
-  hpcd_USB_OTG_HS1.Init.speed = PCD_SPEED_HIGH;
-  hpcd_USB_OTG_HS1.Init.phy_itface = USB_OTG_HS_EMBEDDED_PHY;
-  hpcd_USB_OTG_HS1.Init.Sof_enable = DISABLE;
-  hpcd_USB_OTG_HS1.Init.low_power_enable = DISABLE;
-  hpcd_USB_OTG_HS1.Init.lpm_enable = DISABLE;
-  hpcd_USB_OTG_HS1.Init.use_dedicated_ep1 = DISABLE;
-  hpcd_USB_OTG_HS1.Init.vbus_sensing_enable = DISABLE;
-  hpcd_USB_OTG_HS1.Init.dma_enable = DISABLE;
-  if (HAL_PCD_Init(&hpcd_USB_OTG_HS1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USB1_OTG_HS_Init 2 */
-
-  /* USER CODE END USB1_OTG_HS_Init 2 */
+  /* USER CODE END XSPI2_Init 2 */
 
 }
 
@@ -476,39 +417,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(User_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : HEXASPI_IO_7_Pin HEXASPI_IO_6_Pin HEXASPI_IO_4_Pin HEXASPI_IO_15_Pin
-                           HEXASPI_IO_5_Pin HEXASPI_IO_12_Pin HEXASPI_IO_3_Pin HEXASPI_IO_2_Pin
-                           HEXASPI_IO_13_Pin HEXASPI_IO_11_Pin HEXASPI_IO_8_Pin HEXASPI_IO_14_Pin
-                           HEXASPI_IO_9_Pin HEXASPI_IO_10_Pin */
-  GPIO_InitStruct.Pin = HEXASPI_IO_7_Pin|HEXASPI_IO_6_Pin|HEXASPI_IO_4_Pin|HEXASPI_IO_15_Pin
-                          |HEXASPI_IO_5_Pin|HEXASPI_IO_12_Pin|HEXASPI_IO_3_Pin|HEXASPI_IO_2_Pin
-                          |HEXASPI_IO_13_Pin|HEXASPI_IO_11_Pin|HEXASPI_IO_8_Pin|HEXASPI_IO_14_Pin
-                          |HEXASPI_IO_9_Pin|HEXASPI_IO_10_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P1;
-  HAL_GPIO_Init(GPIOP, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PO1 HEXASPI_DQS0_Pin HEXASPI_DQS1_Pin HEXASPI_NCS_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|HEXASPI_DQS0_Pin|HEXASPI_DQS1_Pin|HEXASPI_NCS_Pin;
+  /*Configure GPIO pins : PO1 HEXASPI_NCS_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|HEXASPI_NCS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P1;
   HAL_GPIO_Init(GPIOO, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : OCTOSPI_IO2_Pin PN12 OCTOSPI_IO4_Pin OCTOSPI_DQS_Pin
-                           OCTOSPI_IO3_Pin OCTOSPI_NCS_Pin OCTOSPI_IO5_Pin OCTOSPI_IO6_Pin
-                           OCTOSPI_IO7_Pin */
-  GPIO_InitStruct.Pin = OCTOSPI_IO2_Pin|GPIO_PIN_12|OCTOSPI_IO4_Pin|OCTOSPI_DQS_Pin
-                          |OCTOSPI_IO3_Pin|OCTOSPI_NCS_Pin|OCTOSPI_IO5_Pin|OCTOSPI_IO6_Pin
-                          |OCTOSPI_IO7_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P2;
-  HAL_GPIO_Init(GPION, &GPIO_InitStruct);
 
   /*Configure GPIO pin : STMOD_IO2_Pin */
   GPIO_InitStruct.Pin = STMOD_IO2_Pin;
@@ -516,6 +431,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(STMOD_IO2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PN12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P2;
+  HAL_GPIO_Init(GPION, &GPIO_InitStruct);
 
   /*Configure GPIO pin : UCPD1_VSENSE_Pin */
   GPIO_InitStruct.Pin = UCPD1_VSENSE_Pin;
@@ -541,127 +464,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/* MPU Configuration */
-
-extern uint8_t __heap_start;
-extern uint8_t __heap_end;
-void MPU_Config(void)
-{
-  MPU_Region_InitTypeDef MPU_InitStruct = {0};
-  MPU_Attributes_InitTypeDef MPU_AttributesInit = {0};
-  uint32_t primask_bit = __get_PRIMASK();
-  __disable_irq();
-
-  /* Disables the MPU */
-  HAL_MPU_Disable();
-
-  /** Initializes and configures the Region 0 (ROM) and the memory to be protected
-  */
-  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x34000000;
-  MPU_InitStruct.LimitAddress = 0x342dffff;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
-  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RO;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 1 (cached RAM) and the memory to be protected
-  */
-  MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0x342e0000;
-  MPU_InitStruct.LimitAddress = ((((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0) - 1;
-  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 2 (Peripherals) and the memory to be protected
-  */
-  MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0x40000000;
-  MPU_InitStruct.LimitAddress = 0x5FFFFFFF;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_OUTER_SHAREABLE;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 3 (ARM Peripherals) and the memory to be protected
-  */
-  MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0xE0000000;
-  MPU_InitStruct.LimitAddress = 0xE0043FFF;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER1;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 4 (LCD RAM non cached) and the memory to be protected
-  */
-  //MPU_InitStruct.Number++;
-  //MPU_InitStruct.BaseAddress = 0x34000000;
-  //MPU_InitStruct.LimitAddress = 0x3417FFFF;
-  //MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 5 (Heap RAM non cached) and the memory to be protected
-  */
-  MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = (((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0;
-  MPU_InitStruct.LimitAddress = (((uint32_t)&__heap_end) & 0xFFFFFFE0) - 1;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 6 (Stack RAM cached) and the memory to be protected
-  */
-  MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = ((uint32_t)&__heap_end) & 0xFFFFFFE0;
-  MPU_InitStruct.LimitAddress = 0x343bffff;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-
-  /** Initializes and configures the Attribute 0 and the memory to be protected
-  */
-  MPU_AttributesInit.Number = MPU_ATTRIBUTES_NUMBER0;
-  MPU_AttributesInit.Attributes = MPU_DEVICE_NGNRE;
-
-  HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
-
-  /** Initializes and configures the Attribute 1 and the memory to be protected
-  */
-  MPU_AttributesInit.Number = MPU_ATTRIBUTES_NUMBER1;
-  MPU_AttributesInit.Attributes = MPU_DEVICE_NGNRNE;
-
-  HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
-
-  /** Initializes and configures the Attribute 2 and the memory to be protected
-  */
-  MPU_AttributesInit.Number = MPU_ATTRIBUTES_NUMBER2;
-  MPU_AttributesInit.Attributes = INNER_OUTER(MPU_NOT_CACHEABLE);
-
-  HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
-
-  /** Initializes and configures the Attribute 3 and the memory to be protected
-  */
-  MPU_AttributesInit.Number = MPU_ATTRIBUTES_NUMBER3;
-  MPU_AttributesInit.Attributes = INNER_OUTER(MPU_WRITE_BACK | MPU_NON_TRANSIENT | MPU_RW_ALLOCATE);
-
-  HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
-  /* Enables the MPU */
-  HAL_MPU_Enable(MPU_HARDFAULT_NMI);
-
-  /* Exit critical section to lock the system and avoid any issue around MPU mechanism */
-  __set_PRIMASK(primask_bit);
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

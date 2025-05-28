@@ -64,8 +64,6 @@ void HAL_MspInit(void)
 {
 
   /* USER CODE BEGIN MspInit 0 */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_RCC_SYSCFG_CLK_ENABLE();
 
   /* USER CODE END MspInit 0 */
 
@@ -85,161 +83,104 @@ void HAL_MspInit(void)
 }
 
 /**
-  * @brief TIM_Base MSP Initialization
+  * @brief XSPI MSP Initialization
   * This function configures the hardware resources used in this example
-  * @param htim_base: TIM_Base handle pointer
+  * @param hxspi: XSPI handle pointer
   * @retval None
   */
-void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
+void HAL_XSPI_MspInit(XSPI_HandleTypeDef* hxspi)
 {
-  if(htim_base->Instance==TIM2)
-  {
-    /* USER CODE BEGIN TIM2_MspInit 0 */
-
-    /* USER CODE END TIM2_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_TIM2_CLK_ENABLE();
-    /* USER CODE BEGIN TIM2_MspInit 1 */
-
-    /* USER CODE END TIM2_MspInit 1 */
-
-  }
-
-}
-
-/**
-  * @brief TIM_Base MSP De-Initialization
-  * This function freeze the hardware resources used in this example
-  * @param htim_base: TIM_Base handle pointer
-  * @retval None
-  */
-void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
-{
-  if(htim_base->Instance==TIM2)
-  {
-    /* USER CODE BEGIN TIM2_MspDeInit 0 */
-
-    /* USER CODE END TIM2_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_TIM2_CLK_DISABLE();
-    /* USER CODE BEGIN TIM2_MspDeInit 1 */
-
-    /* USER CODE END TIM2_MspDeInit 1 */
-  }
-
-}
-
-/**
-  * @brief PCD MSP Initialization
-  * This function configures the hardware resources used in this example
-  * @param hpcd: PCD handle pointer
-  * @retval None
-  */
-void HAL_PCD_MspInit(PCD_HandleTypeDef* hpcd)
-{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
-  if(hpcd->Instance==USB1_OTG_HS)
+  if(hxspi->Instance==XSPI2)
   {
-    /* USER CODE BEGIN USB1_OTG_HS_MspInit 0 */
+    /* USER CODE BEGIN XSPI2_MspInit 0 */
 
-    __HAL_RCC_PWR_CLK_ENABLE();
-
-    /* Enable the VDD33USB independent USB 33 voltage monitor */
-    HAL_PWREx_EnableVddUSBVMEN();
-
-    while (__HAL_PWR_GET_FLAG(PWR_FLAG_USB33RDY) == 0U)
-      ;
-
-    /* Enable VDDUSB */
-    HAL_PWREx_EnableVddUSB();
-
-
-    /* Enable the GPIOA clock */
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-
-    __HAL_RCC_USB1_OTG_HS_PHY_FORCE_RESET();
-
-    /* USER CODE END USB1_OTG_HS_MspInit 0 */
+    /* USER CODE END XSPI2_MspInit 0 */
 
   /** Initializes the peripherals clock
   */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USBOTGHS1;
-    PeriphClkInitStruct.UsbPhy1ClockSelection = RCC_USBOTGHS1CLKSOURCE_HSE_DIV2;
-    PeriphClkInitStruct.UsbOtgHs1ClockSelection = RCC_USBPHY1REFCLKSOURCE_OTGPHY1;
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_XSPI2;
+    PeriphClkInitStruct.Xspi2ClockSelection = RCC_XSPI2CLKSOURCE_IC3;
+    PeriphClkInitStruct.ICSelection[RCC_IC3].ClockSelection = RCC_ICCLKSOURCE_PLL1;
+    PeriphClkInitStruct.ICSelection[RCC_IC3].ClockDivider = 16;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
       Error_Handler();
     }
 
-    /* Enable VDDUSB */
-    if(__HAL_RCC_PWR_IS_CLK_ENABLED())
-    {
-      __HAL_RCC_PWR_CLK_ENABLE();
-      HAL_PWREx_EnableVddUSB();
-      __HAL_RCC_PWR_CLK_DISABLE();
-    }
-    else
-    {
-      HAL_PWREx_EnableVddUSB();
-    }
     /* Peripheral clock enable */
-    __HAL_RCC_USB1_OTG_HS_CLK_ENABLE();
-    /* USER CODE BEGIN USB1_OTG_HS_MspInit 1 */
+    __HAL_RCC_XSPIM_CLK_ENABLE();
+    __HAL_RCC_XSPI2_CLK_ENABLE();
 
-    USB1_HS_PHYC->USBPHYC_CR &= ~(0x7U << 0x4U);
-    USB1_HS_PHYC->USBPHYC_CR |= (0x2U << 0x4U);
+    __HAL_RCC_GPION_CLK_ENABLE();
+    /**XSPI2 GPIO Configuration
+    PN4     ------> XSPIM_P2_IO2
+    PN6     ------> XSPIM_P2_CLK
+    PN8     ------> XSPIM_P2_IO4
+    PN0     ------> XSPIM_P2_DQS0
+    PN3     ------> XSPIM_P2_IO1
+    PN5     ------> XSPIM_P2_IO3
+    PN1     ------> XSPIM_P2_NCS1
+    PN9     ------> XSPIM_P2_IO5
+    PN2     ------> XSPIM_P2_IO0
+    PN10     ------> XSPIM_P2_IO6
+    PN11     ------> XSPIM_P2_IO7
+    */
+    GPIO_InitStruct.Pin = OCTOSPI_IO2_Pin|OCTOSPI_CLK_Pin|OCTOSPI_IO4_Pin|OCTOSPI_DQS_Pin
+                          |OCTOSPI_IO1_Pin|OCTOSPI_IO3_Pin|OCTOSPI_NCS_Pin|OCTOSPI_IO5_Pin
+                          |OCTOSPI_IO0_Pin|OCTOSPI_IO6_Pin|OCTOSPI_IO7_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P2;
+    HAL_GPIO_Init(GPION, &GPIO_InitStruct);
 
-    __HAL_RCC_USB1_OTG_HS_PHY_RELEASE_RESET();
+    /* USER CODE BEGIN XSPI2_MspInit 1 */
 
-    HAL_Delay(1);
-
-    __HAL_RCC_USB1_OTG_HS_RELEASE_RESET();
-
-    /* Peripheral PHY clock enable */
-    __HAL_RCC_USB1_OTG_HS_PHY_CLK_ENABLE();
-
-    /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(USB1_OTG_HS_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(USB1_OTG_HS_IRQn);
-    /* USER CODE END USB1_OTG_HS_MspInit 1 */
+    /* USER CODE END XSPI2_MspInit 1 */
 
   }
 
 }
 
 /**
-  * @brief PCD MSP De-Initialization
+  * @brief XSPI MSP De-Initialization
   * This function freeze the hardware resources used in this example
-  * @param hpcd: PCD handle pointer
+  * @param hxspi: XSPI handle pointer
   * @retval None
   */
-void HAL_PCD_MspDeInit(PCD_HandleTypeDef* hpcd)
+void HAL_XSPI_MspDeInit(XSPI_HandleTypeDef* hxspi)
 {
-  if(hpcd->Instance==USB1_OTG_HS)
+  if(hxspi->Instance==XSPI2)
   {
-    /* USER CODE BEGIN USB1_OTG_HS_MspDeInit 0 */
+    /* USER CODE BEGIN XSPI2_MspDeInit 0 */
 
-    /* Peripheral interrupt Deinit*/
-    HAL_NVIC_DisableIRQ(USB1_OTG_HS_IRQn);
-
-    /* USER CODE END USB1_OTG_HS_MspDeInit 0 */
+    /* USER CODE END XSPI2_MspDeInit 0 */
     /* Peripheral clock disable */
-    __HAL_RCC_USB1_OTG_HS_CLK_DISABLE();
+    __HAL_RCC_XSPIM_CLK_DISABLE();
+    __HAL_RCC_XSPI2_CLK_DISABLE();
 
-    /* Disable VDDUSB */
-    if(__HAL_RCC_PWR_IS_CLK_ENABLED())
-    {
-      __HAL_RCC_PWR_CLK_ENABLE();
-      HAL_PWREx_DisableVddUSB();
-      __HAL_RCC_PWR_CLK_DISABLE();
-    }
-    else
-    {
-      HAL_PWREx_DisableVddUSB();
-    }
-    /* USER CODE BEGIN USB1_OTG_HS_MspDeInit 1 */
+    /**XSPI2 GPIO Configuration
+    PN4     ------> XSPIM_P2_IO2
+    PN6     ------> XSPIM_P2_CLK
+    PN8     ------> XSPIM_P2_IO4
+    PN0     ------> XSPIM_P2_DQS0
+    PN3     ------> XSPIM_P2_IO1
+    PN5     ------> XSPIM_P2_IO3
+    PN1     ------> XSPIM_P2_NCS1
+    PN9     ------> XSPIM_P2_IO5
+    PN2     ------> XSPIM_P2_IO0
+    PN10     ------> XSPIM_P2_IO6
+    PN11     ------> XSPIM_P2_IO7
+    */
+    HAL_GPIO_DeInit(GPION, OCTOSPI_IO2_Pin|OCTOSPI_CLK_Pin|OCTOSPI_IO4_Pin|OCTOSPI_DQS_Pin
+                          |OCTOSPI_IO1_Pin|OCTOSPI_IO3_Pin|OCTOSPI_NCS_Pin|OCTOSPI_IO5_Pin
+                          |OCTOSPI_IO0_Pin|OCTOSPI_IO6_Pin|OCTOSPI_IO7_Pin);
 
-    /* USER CODE END USB1_OTG_HS_MspDeInit 1 */
+    /* USER CODE BEGIN XSPI2_MspDeInit 1 */
+
+    /* USER CODE END XSPI2_MspDeInit 1 */
   }
 
 }
