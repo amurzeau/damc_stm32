@@ -38,9 +38,10 @@ set(CMAKE_NM                        ${TOOLCHAIN_DIRECTORY}/llvm-nm${TOOLCHAIN_SU
 set(CMAKE_EXECUTABLE_SUFFIX_C       ".elf")
 set(CMAKE_EXECUTABLE_SUFFIX_CXX     ".elf")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-static -Wl,--gc-sections")
-set(CMAKE_ASM_FLAGS_INIT        "--target=thumbv8.1m.main-unknown-none-eabihf -mcpu=cortex-m55 -mfloat-abi=hard -march=armv8.1-m.main+mve.fp+fp.dp -x assembler-with-cpp")
-set(CMAKE_C_FLAGS_INIT          "--target=thumbv8.1m.main-unknown-none-eabihf -mcpu=cortex-m55 -mfloat-abi=hard -mthumb -g3 -fdata-sections -ffunction-sections -fstack-usage -fstack-protector -mcmse")
-set(CMAKE_CXX_FLAGS_INIT        "--target=thumbv8.1m.main-unknown-none-eabihf -mcpu=cortex-m55 -mfloat-abi=hard -mthumb -g3 -fdata-sections -ffunction-sections -fstack-usage -fstack-protector -fno-rtti -fno-exceptions -mcmse")
+# Add D__ARM_ARCH_8M_MAIN__ define to workaround https://github.com/ARM-software/CMSIS_5/issues/1210
+set(CMAKE_ASM_FLAGS_INIT        "-D__ARM_ARCH_8M_MAIN__=1 --target=thumbv8.1m.main-unknown-none-eabihf -mcpu=cortex-m55 -mfloat-abi=hard -march=armv8.1-m.main+mve.fp+fp.dp -x assembler-with-cpp")
+set(CMAKE_C_FLAGS_INIT          "-D__ARM_ARCH_8M_MAIN__=1 --target=thumbv8.1m.main-unknown-none-eabihf -mcpu=cortex-m55 -mfloat-abi=hard -mthumb -g3 -fdata-sections -ffunction-sections -fstack-usage -fstack-protector -mcmse")
+set(CMAKE_CXX_FLAGS_INIT        "-D__ARM_ARCH_8M_MAIN__=1 --target=thumbv8.1m.main-unknown-none-eabihf -mcpu=cortex-m55 -mfloat-abi=hard -mthumb -g3 -fdata-sections -ffunction-sections -fstack-usage -fstack-protector -fno-rtti -fno-exceptions -mcmse")
 set(CMAKE_C_FLAGS_DEBUG    "" CACHE STRING "Flags used by the C compiler during RELWITHDEBINFO builds.")
 set(CMAKE_CXX_FLAGS_DEBUG  "" CACHE STRING "Flags used by the CXX compiler during DEBUG builds.")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -DNDEBUG" CACHE STRING "Flags used by the C compiler during RELWITHDEBINFO builds.")
