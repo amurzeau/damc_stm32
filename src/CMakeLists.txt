@@ -77,21 +77,66 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	)
 endif()
 
+install(FILES
+	$<TARGET_FILE:${TARGET_NAME}>
+	$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}.bin
+	$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}.hex
+	$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}.list
+	DESTINATION .
+	COMPONENT all
+)
+
+install(FILES
+	$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}.bin
+	$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}.hex
+	../dist/README.stlink_dragdrop.txt
+	DESTINATION .
+	COMPONENT stlink_dragdrop
+)
+
+install(FILES
+	../dist/README.stm32cubeprogrammer.${TOOLCHAIN_TARGET_NAME}.txt
+	DESTINATION .
+	RENAME README.stm32cubeprogrammer.txt
+	COMPONENT stm32cubeprogrammer
+)
+
 if(TARGET ${TARGET_NAME}_bootloader AND STM32_SIGNINGTOOL_CLI)
 	# Generate concatenated image with
 	# FSBL at first address
 	# Appli at address 0x10000 (64KB)
 	add_custom_command(
-		OUTPUT ${TARGET_NAME}-nor.bin
+		OUTPUT ${TARGET_NAME}-flash.bin
 		DEPENDS
 			$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin
 			${TARGET_NAME}
 		COMMAND
-			   dd if=$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin of=${TARGET_NAME}-nor.bin status=none
-			&& dd if=${TARGET_NAME}.bin of=${TARGET_NAME}-nor.bin bs=1024 seek=64 conv=notrunc status=none
+			   dd if=$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin of=${TARGET_NAME}-flash.bin status=none
+			&& dd if=${TARGET_NAME}.bin of=${TARGET_NAME}-flash.bin bs=1024 seek=64 conv=notrunc status=none
 	)
 	add_custom_target(${TARGET_NAME}-nor
 		ALL
-		DEPENDS ${TARGET_NAME}-nor.bin
+		DEPENDS ${TARGET_NAME}-flash.bin
+	)
+
+	install(FILES
+		$<TARGET_FILE:${TARGET_NAME}_bootloader>
+		$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader.bin
+		$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader.hex
+		$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader.list
+		DESTINATION .
+		COMPONENT all
+	)
+
+	install(FILES
+		$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}-flash.bin
+		DESTINATION .
+		COMPONENT stm32cubeprogrammer
+	)
+else()
+	install(FILES
+		$<TARGET_FILE:${TARGET_NAME}>
+		DESTINATION .
+		COMPONENT stm32cubeprogrammer
 	)
 endif()
