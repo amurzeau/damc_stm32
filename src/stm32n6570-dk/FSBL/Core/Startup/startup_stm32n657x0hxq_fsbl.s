@@ -63,6 +63,10 @@ Reset_Handler:
   ldr   r0, =_estack
   mov   sp, r0          /* set stack pointer */
 
+/* Allow Debug by writting 0xB4 to BSEC_AP_UNLOCK */
+  ldr r0, = 0x56009E90
+  mov r1, #0xB4
+  str r1, [r0]
 
 /* Clear D-TCM */
   ldr R0, = 0x30000000
