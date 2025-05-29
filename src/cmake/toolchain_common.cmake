@@ -5,9 +5,9 @@ macro(define_toolchain ARG_TARGET_NAME COMPILER_FLAGS)
 	set(CMAKE_SYSTEM_NAME               Generic)
 	set(CMAKE_SYSTEM_PROCESSOR          arm)
 
-	set(WINDOWS_ST_CLT_PATH "C:/ST/STM32CubeCLT/STM32CubeCLT/GNU-tools-for-STM32/bin/")
-	set(MAC_ST_CLT_PATH "/opt/ST/STM32CubeCLT/GNU-tools-for-STM32/bin/")
-	set(LINUX_ST_CLT_PATH "/opt/st/stm32cubeclt/GNU-tools-for-STM32/bin")
+	set(WINDOWS_ST_CLT_PATH "C:/ST/STM32CubeCLT/STM32CubeCLT/")
+	set(MAC_ST_CLT_PATH "/opt/ST/STM32CubeCLT/")
+	set(LINUX_ST_CLT_PATH "/opt/st/stm32cubeclt/")
 
 	# Try to find an STM32CubeIDE installation to use for the toolchain.
 	file(GLOB TOOLCHAIN_DIRECTORIES
@@ -19,9 +19,9 @@ macro(define_toolchain ARG_TARGET_NAME COMPILER_FLAGS)
 	find_program(COMPILER_PATH
 		NAMES arm-none-eabi-gcc
 		PATHS
-			${WINDOWS_ST_CLT_PATH}
-			${MAC_ST_CLT_PATH}
-			${LINUX_ST_CLT_PATH}
+			${WINDOWS_ST_CLT_PATH}/GNU-tools-for-STM32/bin
+			${MAC_ST_CLT_PATH}/GNU-tools-for-STM32/bin
+			${LINUX_ST_CLT_PATH}/GNU-tools-for-STM32/bin
 			${TOOLCHAIN_DIRECTORIES}
 		REQUIRED
 	)
@@ -67,6 +67,9 @@ macro(define_toolchain ARG_TARGET_NAME COMPILER_FLAGS)
 	find_program(STM32_SIGNINGTOOL_CLI
 		NAMES STM32_SigningTool_CLI
 		PATHS
+			${WINDOWS_ST_CLT_PATH}/STM32CubeProgrammer/bin
+			${MAC_ST_CLT_PATH}/STM32CubeProgrammer/bin
+			${LINUX_ST_CLT_PATH}/STM32CubeProgrammer/bin
 			${SIGNINGTOOL_DIRECTORIES}
 	)
 endmacro()
