@@ -21,6 +21,7 @@ endif()
 
 project(damc_stm32f723disco VERSION "${DAMC_GIT_VERSION_TRIMMED}" LANGUAGES C CXX ASM)
 
+message(STATUS "Building for ${TOOLCHAIN_TARGET_NAME}")
 set(TARGET_NAME ${PROJECT_NAME})
 
 add_subdirectory(src)
