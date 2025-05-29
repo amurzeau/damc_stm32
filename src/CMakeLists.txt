@@ -77,7 +77,7 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	)
 endif()
 
-if(TARGET ${TARGET_NAME}_bootloader)
+if(TARGET ${TARGET_NAME}_bootloader AND STM32_SIGNINGTOOL_CLI)
 	# Generate concatenated image with
 	# FSBL at first address
 	# Appli at address 0x10000 (64KB)
