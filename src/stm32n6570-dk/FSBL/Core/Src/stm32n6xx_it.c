@@ -69,6 +69,7 @@
 __attribute__((section(".RamFunc"))) void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
+  signalError(0);
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
@@ -84,6 +85,7 @@ __attribute__((section(".RamFunc"))) void NMI_Handler(void)
 __attribute__((section(".RamFunc"))) void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
+  signalError(0);
 
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
@@ -99,6 +101,7 @@ __attribute__((section(".RamFunc"))) void HardFault_Handler(void)
 __attribute__((section(".RamFunc"))) void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+  signalError(0);
 
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
@@ -114,6 +117,7 @@ __attribute__((section(".RamFunc"))) void MemManage_Handler(void)
 __attribute__((section(".RamFunc"))) void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
+  signalError(0);
 
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
@@ -129,6 +133,7 @@ __attribute__((section(".RamFunc"))) void BusFault_Handler(void)
 __attribute__((section(".RamFunc"))) void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
+  signalError(0);
 
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
@@ -144,6 +149,7 @@ __attribute__((section(".RamFunc"))) void UsageFault_Handler(void)
 __attribute__((section(".RamFunc"))) void SecureFault_Handler(void)
 {
   /* USER CODE BEGIN SecureFault_IRQn 0 */
+  signalError(0);
 
   /* USER CODE END SecureFault_IRQn 0 */
   while (1)

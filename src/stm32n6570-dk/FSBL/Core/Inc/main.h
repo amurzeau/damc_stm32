@@ -72,6 +72,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
+void signalError(unsigned int code);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -101,6 +103,10 @@ void Error_Handler(void);
 #define MIC_CK_GPIO_Port GPIOE
 #define TAMP_Pin GPIO_PIN_0
 #define TAMP_GPIO_Port GPIOE
+#define GREEN_LED_Pin GPIO_PIN_1
+#define GREEN_LED_GPIO_Port GPIOO
+#define HEXASPI_NCS_Pin GPIO_PIN_0
+#define HEXASPI_NCS_GPIO_Port GPIOO
 #define OCTOSPI_IO2_Pin GPIO_PIN_4
 #define OCTOSPI_IO2_GPIO_Port GPION
 #define OCTOSPI_CLK_Pin GPIO_PIN_6

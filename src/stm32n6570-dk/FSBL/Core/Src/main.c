@@ -65,10 +65,78 @@ static void MX_XSPI2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+#define TICKSGN ((SysTick_VAL_CURRENT_Msk + 1) >> 1)
+#define WAITMAX (SysTick_VAL_CURRENT_Msk >> 1)
+static inline void waittick(uint32_t step)
+{
+  static uint32_t tick0;
+  if (!step)
+  {
+    tick0 = SysTick->VAL;
+    return;
+  }
+  tick0 = (tick0 - step) & SysTick_VAL_CURRENT_Msk;
+  while ((tick0 - SysTick->VAL) & TICKSGN)
+  {
+    __NOP();
+    __NOP();
+  }
+}
+static inline void sleep(uint32_t delay)
+{
+  waittick(0);
+  delay++;
+  while (delay > WAITMAX)
+  {
+    waittick(WAITMAX);
+    delay -= WAITMAX;
+  }
+  waittick(delay);
+}
+
+volatile uint32_t wait_debug;
+
+__attribute__((section(".RamFunc"))) void signalError(unsigned int code)
+{
+  // Frequency for code 0: 2Hz
+  code = (code + 1) * SystemCoreClock / 4;
+
+  SysTick->LOAD = SysTick_VAL_CURRENT_Msk;
+
+  while (1)
+  {
+    uint32_t odr = GREEN_LED_GPIO_Port->ODR;
+    GREEN_LED_GPIO_Port->BSRR = ((odr & GREEN_LED_Pin) << 16) | (~odr & GREEN_LED_Pin);
+    sleep(code);
+  }
+}
+
 uint32_t BOOT_GetApplicationSize(uint32_t img_addr)
 {
   uint32_t* img_header = (uint32_t*) img_addr;
-  return img_header[2];
+  uint32_t image_signature = img_header[0];
+  uint32_t image_size = img_header[2];
+  uint32_t image_destination = img_header[3];
+
+  if (image_signature != 'APPL')
+  {
+    signalError(1);
+  }
+
+  // Nothing to copy if not in RAM
+  if (image_destination >= 0x34000000 && image_destination < 0x40000000)
+  {
+    // Only copy to defined destination is supported
+    if (image_destination != EXTMEM_LRUN_DESTINATION_ADDRESS)
+    {
+      signalError(2);
+    }
+    return img_header[2];
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 /* USER CODE END 0 */
@@ -351,11 +419,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOP_CLK_ENABLE();
   __HAL_RCC_GPIOO_CLK_ENABLE();
   __HAL_RCC_GPION_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : I2C1_SDA_Pin */
   GPIO_InitStruct.Pin = I2C1_SDA_Pin;
@@ -412,6 +482,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   GPIO_InitStruct.Alternate = GPIO_AF11_SDMMC2;
   HAL_GPIO_Init(SD_D3_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GREEN_LED_Pin */
+  GPIO_InitStruct.Pin = GREEN_LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GREEN_LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : UCPD1_VSENSE_Pin */
   GPIO_InitStruct.Pin = UCPD1_VSENSE_Pin;

@@ -250,7 +250,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(LCD_NRST_GPIO_Port, LCD_NRST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOO, SD_SEL_Pin|GREEN_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SD_SEL_GPIO_Port, SD_SEL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(STMOD_IO2_GPIO_Port, STMOD_IO2_Pin, GPIO_PIN_RESET);
@@ -315,18 +315,26 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LCD_NRST_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SD_SEL_Pin GREEN_LED_Pin */
-  GPIO_InitStruct.Pin = SD_SEL_Pin|GREEN_LED_Pin;
+  /*Configure GPIO pin : SD_SEL_Pin */
+  GPIO_InitStruct.Pin = SD_SEL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOO, &GPIO_InitStruct);
+  HAL_GPIO_Init(SD_SEL_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USER2_Pin */
   GPIO_InitStruct.Pin = USER2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : HEXASPI_NCS_Pin */
+  GPIO_InitStruct.Pin = HEXASPI_NCS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P1;
+  HAL_GPIO_Init(HEXASPI_NCS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : STMOD_IO2_Pin */
   GPIO_InitStruct.Pin = STMOD_IO2_Pin;

@@ -157,8 +157,6 @@ void Error_Handler(void);
 #define HEXASPI_IO_13_GPIO_Port GPIOP
 #define SD_SEL_Pin GPIO_PIN_5
 #define SD_SEL_GPIO_Port GPIOO
-#define GREEN_LED_Pin GPIO_PIN_1
-#define GREEN_LED_GPIO_Port GPIOO
 #define HEXASPI_DQS0_Pin GPIO_PIN_2
 #define HEXASPI_DQS0_GPIO_Port GPIOO
 #define SAI1_MCLK_A_Pin GPIO_PIN_7
