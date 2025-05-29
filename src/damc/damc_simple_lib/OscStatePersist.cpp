@@ -23,25 +23,33 @@ static void MEMORY_read(uint8_t* data, size_t address, size_t size) {
 #elif defined(STM32N657xx)
 #include <stm32n6570_discovery_xspi.h>
 
+static bool xspi_nor_available = false;
 static void MEMORY_init() {
 	BSP_XSPI_NOR_Init_t init = {
 	    .InterfaceMode = MX66UW1G45G_SPI_MODE,
 	    .TransferRate = MX66UW1G45G_STR_TRANSFER,
 	};
-	BSP_XSPI_NOR_Init(0, &init);
+	if(BSP_XSPI_NOR_Init(0, &init) == BSP_ERROR_NONE) {
+		xspi_nor_available = true;
+	}
 }
 
 // 0x4000000: 64MB offset
 static void MEMORY_erase_block(size_t address) {
-	BSP_XSPI_NOR_Erase_Block(0, address + 0x4000000, MX66UW1G45G_ERASE_4K);
+	if(xspi_nor_available)
+		BSP_XSPI_NOR_Erase_Block(0, address + 0x4000000, MX66UW1G45G_ERASE_4K);
 }
 
 static void MEMORY_write(uint8_t* data, size_t address, size_t size) {
-	BSP_XSPI_NOR_Write(0, data, address + 0x4000000, size);
+	if(xspi_nor_available)
+		BSP_XSPI_NOR_Write(0, data, address + 0x4000000, size);
 }
 
 static void MEMORY_read(uint8_t* data, size_t address, size_t size) {
-	BSP_XSPI_NOR_Read(0, data, address + 0x4000000, size);
+	if(xspi_nor_available)
+		BSP_XSPI_NOR_Read(0, data, address + 0x4000000, size);
+	else
+		memset(data, 0, size);
 }
 #endif
 
