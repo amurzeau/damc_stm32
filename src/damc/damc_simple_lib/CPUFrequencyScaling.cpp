@@ -240,14 +240,27 @@ void CPUFrequencyScaling::setRawAHBDivider(uint32_t divider) {
 	uv_async_send(&asyncFrequencyChanged);
 }
 
-// Max 200Mhz
+// Max 1Ghz
+void CPUFrequencyScaling::setRawNPUDivider(uint32_t divider) {
+	divider = clampDivider(divider, 1, 256, true);
+
+	if(divider == LL_RCC_IC6_GetDivider())
+		return;
+
+	// Set NPU frequency divider
+	LL_RCC_IC6_SetDivider(divider);
+
+	uv_async_send(&asyncFrequencyChanged);
+}
+
+// Max 900Mhz
 void CPUFrequencyScaling::setRawAXISRAM3456Divider(uint32_t divider) {
 	divider = clampDivider(divider, 1, 256, true);
 
 	if(divider == LL_RCC_IC11_GetDivider())
 		return;
 
-	// Set AHB frequency divider
+	// Set AXISRAM3/4/5/6 frequency divider
 	LL_RCC_IC11_SetDivider(divider);
 
 	uv_async_send(&asyncFrequencyChanged);
@@ -293,6 +306,7 @@ void CPUFrequencyScaling::adjustCpuFreq(CpuFreqAdjustement adjustment) {
 
 	setRawCPUDivider(current_divider);
 	// setRawAXIDivider(current_divider);
+	setRawNPUDivider(current_divider);
 	setRawAXISRAM3456Divider(current_divider);
 }
 

@@ -30,6 +30,7 @@ protected:
 	void setRawCPUDivider(uint32_t divider);
 	void setRawAXIDivider(uint32_t divider);
 	void setRawAHBDivider(uint32_t divider);
+	void setRawNPUDivider(uint32_t divider);
 	void setRawAXISRAM3456Divider(uint32_t divider);
 	void setRawTimerDivider(uint32_t index, uint32_t divider);
 #endif
