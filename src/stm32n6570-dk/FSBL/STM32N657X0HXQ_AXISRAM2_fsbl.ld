@@ -56,6 +56,7 @@ SECTIONS
   .isr_vector :
   {
     . = ALIGN(4);
+    _sisr = .;        /* create a global symbol at data start */
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >ROM
@@ -79,6 +80,8 @@ SECTIONS
     *(.text.SCB_DisableDCache)
     *(.text.BOOT_GetApplicationVectorTable)
     *(.text.BOOT_GetApplicationSize)
+    *(.RamFunc)        /* .RamFunc sections */
+    *(.RamFunc*)       /* .RamFunc* sections */
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
@@ -94,8 +97,6 @@ SECTIONS
     *(.glue_7)         /* glue arm to thumb code */
     *(.glue_7t)        /* glue thumb to arm code */
     *(.eh_frame)
-    *(.RamFunc)        /* .RamFunc sections */
-    *(.RamFunc*)       /* .RamFunc* sections */
 
     KEEP (*(.init))
     KEEP (*(.fini))

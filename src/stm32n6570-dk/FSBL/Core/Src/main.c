@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <string.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +47,9 @@
 XSPI_HandleTypeDef hxspi2;
 
 /* USER CODE BEGIN PV */
+
+extern uint8_t _sisr[1024];
+static uint8_t isr_vector[1024] __attribute__((aligned(1024)));
 
 /* USER CODE END PV */
 
@@ -123,6 +128,12 @@ int main(void)
   RAMCFG_SRAM4_AXI->CR &= ~RAMCFG_CR_SRAMSD;
   RAMCFG_SRAM5_AXI->CR &= ~RAMCFG_CR_SRAMSD;
   RAMCFG_SRAM6_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+
+  // Move ISR vector
+  __disable_irq();
+  memcpy(isr_vector, &_sisr, sizeof(isr_vector));
+  SCB->VTOR = (uint32_t)isr_vector;
+  __enable_irq();
 
   /* USER CODE END 2 */
 
