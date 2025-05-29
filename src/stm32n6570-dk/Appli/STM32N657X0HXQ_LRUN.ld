@@ -157,7 +157,7 @@ SECTIONS
 
   } >RAM AT> ROM
 
-  .noncacheable :
+  .noncacheable (NOLOAD) :
   {
     . = ALIGN(8);
     __snoncacheable = .;/* create symbol for start of section */
@@ -194,8 +194,18 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM
 
+  /* Uninitialized data section into "RAM" Ram type memory */
+  .dtcm (NOLOAD) :
+  {
+    . = ALIGN(4);
+    *(.dtcm)
+    *(.dtcm*)
+    *(COMMON)
+    . = ALIGN(4);
+  } >DTCM
+
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
-  ._user_heap_stack :
+  ._user_heap_stack (NOLOAD) :
   {
     . = ALIGN(8);
 	__heap_start = .; /* start of heap */
