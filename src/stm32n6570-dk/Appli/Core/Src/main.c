@@ -464,6 +464,15 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
+  /** Initializes and configures the Region 7 (DTCM RAM not cached) and the memory to be protected
+  */
+  MPU_InitStruct.Number++;
+  MPU_InitStruct.BaseAddress = 0x2000000;
+  MPU_InitStruct.LimitAddress = 0x2001ffff;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
 
   /** Initializes and configures the Attribute 0 and the memory to be protected
   */
