@@ -358,10 +358,11 @@ CPUFrequencyScaling::CPUFrequencyScaling(OscRoot* oscRoot)
 	[this](int32_t value) { \
 		if(oscManualControl) { \
 			dividerChangeFunction; \
-		} else { \
-			oscDivider.set(current_ahb_divider); \
 		} \
 	}
+
+	auto checkSetDividerAllowed = [this](int32_t v) { return oscManualControl.get(); };
+	oscCpuDivider.addCheckCallback(checkSetDividerAllowed);
 
 #if defined(STM32F723xx)
 	oscCpuDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscCpuDivider, setAHBDivider(value)));
@@ -370,6 +371,10 @@ CPUFrequencyScaling::CPUFrequencyScaling(OscRoot* oscRoot)
 	oscAXIDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscAXIDivider, setRawAXIDivider(value)));
 	oscAHBDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscAHBDivider, setRawAHBDivider(value)));
 	oscTimerDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscTimerDivider, setRawTimerDivider(1, value)));
+
+	oscAXIDivider.addCheckCallback(checkSetDividerAllowed);
+	oscAHBDivider.addCheckCallback(checkSetDividerAllowed);
+	oscTimerDivider.addCheckCallback(checkSetDividerAllowed);
 #endif
 
 	resetFrequencyToMaxPerformance();
@@ -459,10 +464,10 @@ void CPUFrequencyScaling::onFrequencyChanged(uv_async_t* handle) {
 	thisInstance->oscCpuDivider.set(thisInstance->current_ahb_divider);
 	thisInstance->oscCpuFrequency.set(SystemCoreClock);
 #elif defined(STM32N657xx)
-	thisInstance->oscCpuDivider.set(LL_RCC_IC1_GetDivider());
-	thisInstance->oscAXIDivider.set(LL_RCC_IC2_GetDivider());
-	thisInstance->oscAHBDivider.set(getAHBDivider());
-	thisInstance->oscTimerDivider.set(getTimerDivider());
+	thisInstance->oscCpuDivider.setNoCheck(LL_RCC_IC1_GetDivider());
+	thisInstance->oscAXIDivider.setNoCheck(LL_RCC_IC2_GetDivider());
+	thisInstance->oscAHBDivider.setNoCheck(getAHBDivider());
+	thisInstance->oscTimerDivider.setNoCheck(getTimerDivider());
 
 	thisInstance->oscCpuFrequency.set(SystemCoreClock);
 	thisInstance->oscAXIFrequency.set(HAL_RCC_GetSysClockFreq());

@@ -18,6 +18,7 @@ public:
 	OscReadOnlyVariable(const OscReadOnlyVariable&) = delete;
 
 	void set(readonly_type v, bool fromOsc = false);
+	void setNoCheck(readonly_type v, bool fromOsc = false);
 	void setFromOsc(readonly_type value);
 	void setDefault(readonly_type v);
 	void forceDefault(readonly_type v);

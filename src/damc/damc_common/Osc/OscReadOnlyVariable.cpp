@@ -30,6 +30,17 @@ template<typename T> void OscReadOnlyVariable<T>::set(readonly_type v, bool from
 	}
 }
 
+template<typename T> void OscReadOnlyVariable<T>::setNoCheck(readonly_type v, bool fromOsc) {
+	if(value != v || isDefaultValue) {
+		SPDLOG_INFO("{}: set to {}", getFullAddress(), v);
+		isDefaultValue = false;
+		value = v;
+		callChangeCallbacks(v);
+		if(!fromOsc || getRoot()->isOscValueAuthority())
+			notifyOsc();
+	}
+}
+
 template<typename T> void OscReadOnlyVariable<T>::setDefault(readonly_type v) {
 	if(isDefaultValue) {
 		isDefaultValue = false;  // Only notify if the value is different
