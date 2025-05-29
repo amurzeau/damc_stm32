@@ -150,6 +150,12 @@ void CPUFrequencyScaling::setAHBDivider(uint32_t divider) {
 	max_cpu_usage_ratio_per_thousand = 0;
 }
 
+const uint32_t CPUFrequencyScaling::CPU_USAGE_MARGIN_AT_MAX_FREQUENCY = 25;
+
+uint32_t CPUFrequencyScaling::getCpuUsageWithLowerSpeed(uint32_t value) {
+	return value * 2;
+}
+
 void CPUFrequencyScaling::adjustCpuFreq(CpuFreqAdjustement adjustment) {
 	switch(adjustment) {
 		case CpuFreqAdjustement::ResetToMax:
@@ -193,6 +199,9 @@ void CPUFrequencyScaling::setRawCPUDivider(uint32_t divider) {
 
 	// Set sys_cpu_ck frequency
 	LL_RCC_IC1_SetDivider(divider);
+
+	current_ahb_divider = divider;
+	recent_ahb_divider_change = true;
 
 	/* Update the SystemCoreClock global variable */
 	SystemCoreClock = HAL_RCC_GetCpuClockFreq();
@@ -287,8 +296,14 @@ void CPUFrequencyScaling::setRawTimerDivider(uint32_t index, uint32_t divider) {
 	uv_async_send(&asyncFrequencyChanged);
 }
 
+const uint32_t CPUFrequencyScaling::CPU_USAGE_MARGIN_AT_MAX_FREQUENCY = 7;
+
+uint32_t CPUFrequencyScaling::getCpuUsageWithLowerSpeed(uint32_t value) {
+	return value * (current_ahb_divider + 1) / current_ahb_divider;
+}
+
 void CPUFrequencyScaling::adjustCpuFreq(CpuFreqAdjustement adjustment) {
-	static const uint32_t MIN_DIVIDER = 2;
+	static const uint32_t MIN_DIVIDER = 1;
 	uint32_t current_divider = LL_RCC_IC1_GetDivider();
 	switch(adjustment) {
 		case CpuFreqAdjustement::ResetToMax:
@@ -396,8 +411,7 @@ void CPUFrequencyScaling::updateCpuUsage() {
 	// CPU time in realtime interrupts
 	uint32_t cpu_usage_ratio_us = TimeMeasure::timeMeasure[TMI_UsbInterrupt].getMaxTimeUs() +
 	                              TimeMeasure::timeMeasure[TMI_AudioProcessing].getMaxTimeUs() +
-	                              TimeMeasure::timeMeasure[TMI_OtherIRQ].getMaxTimeUs() +
-	                              TimeMeasure::timeMeasure[TMI_MainLoop].getMaxTimeUs();
+	                              TimeMeasure::timeMeasure[TMI_OtherIRQ].getMaxTimeUs();
 
 	// Duration of the main loop task so far (if its too long, we will also increase CPU frequency to speed it up)
 	uint32_t main_loop_task_duration_us = TimeMeasure::timeMeasure[TMI_MainLoop].getOnGoingDuration();
@@ -410,18 +424,23 @@ void CPUFrequencyScaling::updateCpuUsage() {
 		cpu_usage_points = 0;
 	}
 
-	uint32_t current_needed_cpu_usage_room = 25 * current_ahb_divider;
+	uint32_t current_needed_cpu_usage_room = CPU_USAGE_MARGIN_AT_MAX_FREQUENCY * current_ahb_divider;
 
-	if(main_loop_task_duration_us > 10000) {
+	if(main_loop_task_duration_us > 2000) {
 		// If main loop current task is running so far for more than 10ms, increase CPU frequency to max
 		// to speed it up.
-		adjustCpuFreq(CpuFreqAdjustement::ResetToMax);
+		adjustCpuFreq(CpuFreqAdjustement::IncreaseSpeed);
+
+		// We needed to increase the frequency for the main loop, reset wait time before decreasing again
+		cpu_usage_points = 0;
 	} else if(max_cpu_usage_ratio_per_thousand > 900 - current_needed_cpu_usage_room) {
 		// We are above 90% + 2.5% normalized room cpu usage, increase cpu speed
 		adjustCpuFreq(CpuFreqAdjustement::IncreaseSpeed);
 	} else if(cpu_usage_points >= cpu_usage_points_target &&
-	          (2 * max_cpu_usage_ratio_per_thousand < 850 - current_needed_cpu_usage_room * 2)) {
-		// We can divide cpu frequency by 2 while being under 85% cpu usage + 2.5% normalized room
+	          (getCpuUsageWithLowerSpeed(max_cpu_usage_ratio_per_thousand) <
+	           850 - getCpuUsageWithLowerSpeed(current_needed_cpu_usage_room))) {
+		// We can divide cpu frequency by 2 while being under 85% cpu usage + 2.5% normalized room and only if main loop
+		// is not active for more than 90% of 1ms period
 		adjustCpuFreq(CpuFreqAdjustement::DecreaseSpeed);
 	}
 
