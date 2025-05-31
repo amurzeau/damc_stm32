@@ -97,6 +97,12 @@ file(GLOB_RECURSE SOURCE_LIST
 	Drivers/*.c
 	Drivers/*.h
 	Drivers/*.cpp
+	BSP/*.c
+	BSP/*.h
+	BSP/*.cpp
+	Components/*.c
+	Components/*.h
+	Components/*.cpp
 )
 # Exclude template files
 list(FILTER SOURCE_LIST EXCLUDE REGEX .*/Source/Templates/.*)
@@ -109,8 +115,8 @@ target_include_directories(
 	${CMAKE_CURRENT_LIST_DIR}/Appli/Core/Inc
     ${CMAKE_CURRENT_LIST_DIR}/Appli/USB_DEVICE/App
     ${CMAKE_CURRENT_LIST_DIR}/Appli/USB_DEVICE/Target
-    ${CMAKE_CURRENT_LIST_DIR}/Appli/BSP
-    ${CMAKE_CURRENT_LIST_DIR}/Appli/Components/Common
+    ${CMAKE_CURRENT_LIST_DIR}/BSP
+    ${CMAKE_CURRENT_LIST_DIR}/Components/Common
     ${CMAKE_CURRENT_LIST_DIR}/Appli/Middlewares/ST/STM32_USB_Device_Library/Core/Inc
 	${CMAKE_CURRENT_LIST_DIR}/Secure_nsclib
 )
