@@ -30,17 +30,20 @@ file(GLOB_RECURSE FSBL_SOURCE_LIST
 	FSBL/*.h
 	FSBL/*.cpp
 	FSBL/*.s
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_cortex.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_dma_ex.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_dma.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_exti.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_gpio.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_pwr_ex.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_pwr.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc_ex.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_xspi.c
-	Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal.c
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_cortex.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_dma_ex.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_dma.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_exti.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_gpio.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_pwr_ex.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_pwr.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_rcc_ex.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_rcc.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_uart.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_uart_ex.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_xspi.*
+	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal.*
+
 	Middlewares/ST/STM32_ExtMem_Manager/*.c
 	Middlewares/ST/STM32_ExtMem_Manager/*.h
 	Middlewares/ST/STM32_ExtMem_Manager/*.cpp
