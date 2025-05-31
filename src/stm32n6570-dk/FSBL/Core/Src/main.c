@@ -23,6 +23,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <stdint.h>
+#include <stm32n6570_discovery.h>
+#include <stm32n6570_discovery_xspi.h>
 #include <string.h>
 
 /* USER CODE END Includes */
@@ -123,20 +126,7 @@ uint32_t BOOT_GetApplicationSize(uint32_t img_addr)
     signalError(1);
   }
 
-  // Nothing to copy if not in RAM
-  if (image_destination >= 0x34000000 && image_destination < 0x40000000)
-  {
-    // Only copy to defined destination is supported
-    if (image_destination != EXTMEM_LRUN_DESTINATION_ADDRESS)
-    {
-      signalError(2);
-    }
-    return img_header[2];
-  }
-  else
-  {
-    return 0;
-  }
+  return img_header[2];
 }
 
 /* USER CODE END 0 */
@@ -175,11 +165,22 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes XSPI1 clock for fixed frequency even if AXI change */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_XSPI1;
+  PeriphClkInitStruct.ICSelection[RCC_IC3].ClockSelection = LL_RCC_ICCLKSOURCE_PLL1;
+  PeriphClkInitStruct.ICSelection[RCC_IC3].ClockDivider = 4;
+  PeriphClkInitStruct.Xspi1ClockSelection = LL_RCC_XSPI1_CLKSOURCE_IC3;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_XSPI2_Init();
   MX_EXTMEM_MANAGER_Init();
   /* USER CODE BEGIN 2 */
 
@@ -191,7 +192,7 @@ int main(void)
 
   __HAL_RCC_RAMCFG_CLK_ENABLE();
 
-  // Enable NPU, this required to access AXISRAM3-6
+  // Enable NPU, required to access AXISRAM3-6
   RCC->AHB5ENSR = RCC_AHB5ENSR_NPUENS;
   RCC->MEMENSR = RCC_MEMENR_AXISRAM3EN | RCC_MEMENR_AXISRAM4EN | RCC_MEMENR_AXISRAM5EN | RCC_MEMENR_AXISRAM6EN;
 
@@ -201,7 +202,28 @@ int main(void)
   RAMCFG_SRAM5_AXI->CR &= ~RAMCFG_CR_SRAMSD;
   RAMCFG_SRAM6_AXI->CR &= ~RAMCFG_CR_SRAMSD;
 
-  // Move ISR vector
+  // Enable NOR
+  BSP_XSPI_NOR_Init_t nor_init = {
+    .InterfaceMode = MX66UW1G45G_OPI_MODE,
+    .TransferRate = MX66UW1G45G_DTR_TRANSFER,
+  };
+  BSP_XSPI_NOR_Init(0, &nor_init);
+
+  BSP_XSPI_NOR_EnableMemoryMappedMode(0);
+
+  // Enable PSRAM
+  BSP_XSPI_RAM_Init(0);
+
+  // Update RAM refresh rate, 2us allowed max
+  // The value setted by BSP_XSPI_RAM_Init is not updated after updating the prescaler to switch to 200Mhz XSPI clock
+  uint32_t hspi_clk = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_XSPI1);
+  while (hxspi_ram[0].Instance->SR & XSPI_SR_BUSY)
+  	;
+  hxspi_ram[0].Instance->DCR4 = ((2U * (uint64_t)(200000000)) / 1000000U) - 4U;
+
+  BSP_XSPI_RAM_EnableMemoryMappedMode(0);
+
+  // Move ISR vector to DTCM
   __disable_irq();
   memcpy(isr_vector, &_sisr, sizeof(isr_vector));
   SCB->VTOR = (uint32_t)isr_vector;
@@ -357,57 +379,6 @@ void PeriphCommonClock_Config(void)
 }
 
 /**
-  * @brief XSPI2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_XSPI2_Init(void)
-{
-
-  /* USER CODE BEGIN XSPI2_Init 0 */
-
-  /* USER CODE END XSPI2_Init 0 */
-
-  XSPIM_CfgTypeDef sXspiManagerCfg = {0};
-
-  /* USER CODE BEGIN XSPI2_Init 1 */
-
-  /* USER CODE END XSPI2_Init 1 */
-  /* XSPI2 parameter configuration*/
-  hxspi2.Instance = XSPI2;
-  hxspi2.Init.FifoThresholdByte = 1;
-  hxspi2.Init.MemoryMode = HAL_XSPI_SINGLE_MEM;
-  hxspi2.Init.MemoryType = HAL_XSPI_MEMTYPE_MACRONIX;
-  hxspi2.Init.MemorySize = HAL_XSPI_SIZE_1GB;
-  hxspi2.Init.ChipSelectHighTimeCycle = 2;
-  hxspi2.Init.FreeRunningClock = HAL_XSPI_FREERUNCLK_DISABLE;
-  hxspi2.Init.ClockMode = HAL_XSPI_CLOCK_MODE_0;
-  hxspi2.Init.WrapSize = HAL_XSPI_WRAP_NOT_SUPPORTED;
-  hxspi2.Init.ClockPrescaler = 0;
-  hxspi2.Init.SampleShifting = HAL_XSPI_SAMPLE_SHIFT_NONE;
-  hxspi2.Init.DelayHoldQuarterCycle = HAL_XSPI_DHQC_ENABLE;
-  hxspi2.Init.ChipSelectBoundary = HAL_XSPI_BONDARYOF_NONE;
-  hxspi2.Init.MaxTran = 0;
-  hxspi2.Init.Refresh = 0;
-  hxspi2.Init.MemorySelect = HAL_XSPI_CSSEL_NCS1;
-  if (HAL_XSPI_Init(&hxspi2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sXspiManagerCfg.nCSOverride = HAL_XSPI_CSSEL_OVR_NCS1;
-  sXspiManagerCfg.IOPort = HAL_XSPIM_IOPORT_2;
-  sXspiManagerCfg.Req2AckTime = 1;
-  if (HAL_XSPIM_Config(&hxspi2, &sXspiManagerCfg, HAL_XSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN XSPI2_Init 2 */
-
-  /* USER CODE END XSPI2_Init 2 */
-
-}
-
-/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -473,6 +444,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOP_CLK_ENABLE();
   __HAL_RCC_GPIOO_CLK_ENABLE();
   __HAL_RCC_GPION_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();

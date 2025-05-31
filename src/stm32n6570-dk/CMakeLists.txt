@@ -8,7 +8,6 @@ set(HELIUM ON PARENT_SCOPE)
 add_library(stm32cube_headers INTERFACE)
 
 target_include_directories(stm32cube_headers INTERFACE
-    #${CMAKE_CURRENT_LIST_DIR}/Appli/Core/Inc
     ${CMAKE_CURRENT_LIST_DIR}/Drivers/STM32N6xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_LIST_DIR}/Drivers/STM32N6xx_HAL_Driver/Inc/Legacy
     ${CMAKE_CURRENT_LIST_DIR}/Drivers/CMSIS/Device/ST/STM32N6xx/Include
@@ -44,6 +43,16 @@ file(GLOB_RECURSE FSBL_SOURCE_LIST
 	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_xspi.*
 	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal.*
 
+	BSP/stm32n6570_discovery_xspi.c
+	BSP/stm32n6570_discovery_xspi.h
+	BSP/stm32n6570_discovery_conf.h
+	BSP/stm32n6570_discovery_errno.h
+	BSP/stm32n6570_discovery.c
+	Components/aps256xx/*.c
+	Components/aps256xx/*.h
+	Components/mx66uw1g45g/*.c
+	Components/mx66uw1g45g/*.h
+
 	Middlewares/ST/STM32_ExtMem_Manager/*.c
 	Middlewares/ST/STM32_ExtMem_Manager/*.h
 	Middlewares/ST/STM32_ExtMem_Manager/*.cpp
@@ -74,6 +83,8 @@ endif()
 target_include_directories(
     ${TARGET_NAME}_bootloader PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/FSBL/Core/Inc
+    ${CMAKE_CURRENT_LIST_DIR}/BSP
+    ${CMAKE_CURRENT_LIST_DIR}/Components/Common
     ${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Manager
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Manager/boot
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Manager/sal

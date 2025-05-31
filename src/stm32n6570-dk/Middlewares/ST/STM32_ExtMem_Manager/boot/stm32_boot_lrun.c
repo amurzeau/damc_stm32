@@ -55,16 +55,13 @@ BOOTStatus_TypeDef BOOT_Application(void)
   BOOTStatus_TypeDef retr;
 
   /* mount the memory */
-  retr = MapMemory();
+  retr = CopyApplication();
   if (BOOT_OK == retr)
   {
-    retr = CopyApplication();
-    if (BOOT_OK == retr)
-    {
-      /* jump on the application */
-      retr = JumpToApplication();
-      while(1);
-    }
+    /* jump on the application */
+    retr = JumpToApplication();
+    while (1)
+      ;
   }
   return retr;
 }

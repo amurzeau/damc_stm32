@@ -328,28 +328,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : HEXASPI_NCS_Pin */
-  GPIO_InitStruct.Pin = HEXASPI_NCS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P1;
-  HAL_GPIO_Init(HEXASPI_NCS_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : STMOD_IO2_Pin */
   GPIO_InitStruct.Pin = STMOD_IO2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(STMOD_IO2_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PN12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF9_XSPIM_P2;
-  HAL_GPIO_Init(GPION, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED2_Pin */
   GPIO_InitStruct.Pin = LED2_Pin;

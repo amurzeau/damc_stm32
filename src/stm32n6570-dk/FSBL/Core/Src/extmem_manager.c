@@ -24,6 +24,8 @@
 
 /* USER CODE BEGIN Includes */
 
+#include <stm32n6570_discovery_xspi.h>
+
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN PV */
@@ -59,6 +61,9 @@ void MX_EXTMEM_MANAGER_Init(void)
 
   /* USER CODE BEGIN MX_EXTMEM_Init_PreTreatment */
 
+#define hxspi2 hxspi_nor[0]
+#define EXTMEM_Init(...)
+
   /* USER CODE END MX_EXTMEM_Init_PreTreatment */
 
   /* Initialization of the memory parameters */
@@ -72,6 +77,9 @@ void MX_EXTMEM_MANAGER_Init(void)
   EXTMEM_Init(EXTMEMORY_1, HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_XSPI2));
 
   /* USER CODE BEGIN MX_EXTMEM_Init_PostTreatment */
+
+#undef hxspi2
+#undef EXTMEM_Init
 
   /* USER CODE END MX_EXTMEM_Init_PostTreatment */
 }
