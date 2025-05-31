@@ -43,6 +43,9 @@ file(GLOB_RECURSE FSBL_SOURCE_LIST
 	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_xspi.*
 	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal.*
 
+	../memtester/*.h
+	../memtester/*.c
+
 	BSP/stm32n6570_discovery_xspi.c
 	BSP/stm32n6570_discovery_xspi.h
 	BSP/stm32n6570_discovery_conf.h
@@ -92,6 +95,7 @@ target_include_directories(
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Manager/psram
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Manager/sdcard
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Manager/user
+    ${CMAKE_CURRENT_LIST_DIR}/../memtester
 )
 
 target_link_libraries(${TARGET_NAME}_bootloader PRIVATE common_flags stm32cube_headers)

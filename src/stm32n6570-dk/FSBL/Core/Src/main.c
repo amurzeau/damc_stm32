@@ -27,6 +27,8 @@
 #include <stm32n6570_discovery.h>
 #include <stm32n6570_discovery_xspi.h>
 #include <string.h>
+#include "memory_benchmark.h"
+#include <memtester.h>
 
 /* USER CODE END Includes */
 
@@ -37,6 +39,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+//#define MEMORY_BENCHMARK
+//#define MEMORY_MEMTESTER
 
 /* USER CODE END PD */
 
@@ -225,6 +230,18 @@ int main(void)
   hxspi_ram[0].Instance->DCR4 = ((2U * (uint64_t)(200000000)) / 1000000U) - 4U;
 
   BSP_XSPI_RAM_EnableMemoryMappedMode(0);
+
+#if defined(MEMORY_BENCHMARK)
+  memory_benchmark_performance();
+#endif
+
+#if defined(MEMORY_MEMTESTER)
+  memtester_stm32((void *)0x90000000, 0x1000000, 1);
+#endif
+
+#if defined(MEMORY_BENCHMARK) || defined(MEMORY_MEMTESTER)
+  HAL_UART_DeInit(&huart1);
+#endif
 
   // Move ISR vector to DTCM
   __disable_irq();
