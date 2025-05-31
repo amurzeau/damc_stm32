@@ -155,6 +155,9 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
+  // Enable SMPS overdrive mode for higher CPU frequency
+  BSP_SMPS_Init(SMPS_VOLTAGE_OVERDRIVE);
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -346,13 +349,13 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
   RCC_ClkInitStruct.APB5CLKDivider = RCC_APB5_DIV1;
   RCC_ClkInitStruct.IC1Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-  RCC_ClkInitStruct.IC1Selection.ClockDivider = 2;
+  RCC_ClkInitStruct.IC1Selection.ClockDivider = 1;
   RCC_ClkInitStruct.IC2Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
   RCC_ClkInitStruct.IC2Selection.ClockDivider = 2;
   RCC_ClkInitStruct.IC6Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-  RCC_ClkInitStruct.IC6Selection.ClockDivider = 2;
+  RCC_ClkInitStruct.IC6Selection.ClockDivider = 1;
   RCC_ClkInitStruct.IC11Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-  RCC_ClkInitStruct.IC11Selection.ClockDivider = 2;
+  RCC_ClkInitStruct.IC11Selection.ClockDivider = 1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK)
   {
