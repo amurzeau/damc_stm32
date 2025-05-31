@@ -517,78 +517,87 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the System Power Supply
-  */
-  if (HAL_PWREx_ConfigSupply(PWR_EXTERNAL_SOURCE_SUPPLY) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /* Enable HSI */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_NONE;
-  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
-  RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
-  RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /* Wait HSE stabilization time before its selection as PLL source. */
-  HAL_Delay(HSE_STARTUP_TIMEOUT);
 
   /** Get current CPU/System buses clocks configuration and if necessary switch
  to intermediate HSI clock to ensure target clock can be set
   */
   HAL_RCC_GetClockConfig(&RCC_ClkInitStruct);
-  if ((RCC_ClkInitStruct.CPUCLKSource == RCC_CPUCLKSOURCE_IC1) ||
-     (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_IC2_IC6_IC11))
+  if (RCC_ClkInitStruct.CPUCLKSource == RCC_CPUCLKSOURCE_HSI)
   {
-    RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_CPUCLK | RCC_CLOCKTYPE_SYSCLK);
-    RCC_ClkInitStruct.CPUCLKSource = RCC_CPUCLKSOURCE_HSI;
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK)
+    // Clocks not configured, FSBL was not run beforehand, we are loaded directly by the debugger
+
+    /** Configure the System Power Supply
+  */
+    if (HAL_PWREx_ConfigSupply(PWR_EXTERNAL_SOURCE_SUPPLY) != HAL_OK)
     {
-      /* Initialization Error */
       Error_Handler();
     }
-  }
 
-  /** Initializes the RCC Oscillators according to the specified parameters
+    /* Enable HSI */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_NONE;
+    RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
+    RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
+    RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    /* Wait HSE stabilization time before its selection as PLL source. */
+    HAL_Delay(HSE_STARTUP_TIMEOUT);
+
+    /** Get current CPU/System buses clocks configuration and if necessary switch
+ to intermediate HSI clock to ensure target clock can be set
+  */
+    HAL_RCC_GetClockConfig(&RCC_ClkInitStruct);
+    if ((RCC_ClkInitStruct.CPUCLKSource == RCC_CPUCLKSOURCE_IC1) || (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_IC2_IC6_IC11))
+    {
+      RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_CPUCLK | RCC_CLOCKTYPE_SYSCLK);
+      RCC_ClkInitStruct.CPUCLKSource = RCC_CPUCLKSOURCE_HSI;
+      RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+      if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK)
+      {
+        /* Initialization Error */
+        Error_Handler();
+      }
+    }
+
+    /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL1.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL1.PLLM = 1;
-  RCC_OscInitStruct.PLL1.PLLN = 50;
-  RCC_OscInitStruct.PLL1.PLLFractional = 0;
-  RCC_OscInitStruct.PLL1.PLLP1 = 3;
-  RCC_OscInitStruct.PLL1.PLLP2 = 1;
-  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL2.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL2.PLLM = 2;
-  RCC_OscInitStruct.PLL2.PLLN = 64;
-  RCC_OscInitStruct.PLL2.PLLFractional = 0;
-  RCC_OscInitStruct.PLL2.PLLP1 = 5;
-  RCC_OscInitStruct.PLL2.PLLP2 = 5;
-  RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
-  RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL4.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL4.PLLM = 6;
-  RCC_OscInitStruct.PLL4.PLLN = 100;
-  RCC_OscInitStruct.PLL4.PLLFractional = 0;
-  RCC_OscInitStruct.PLL4.PLLP1 = 4;
-  RCC_OscInitStruct.PLL4.PLLP2 = 4;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL1.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL1.PLLM = 1;
+    RCC_OscInitStruct.PLL1.PLLN = 50;
+    RCC_OscInitStruct.PLL1.PLLFractional = 0;
+    RCC_OscInitStruct.PLL1.PLLP1 = 3;
+    RCC_OscInitStruct.PLL1.PLLP2 = 1;
+    RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL2.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL2.PLLM = 2;
+    RCC_OscInitStruct.PLL2.PLLN = 64;
+    RCC_OscInitStruct.PLL2.PLLFractional = 0;
+    RCC_OscInitStruct.PLL2.PLLP1 = 5;
+    RCC_OscInitStruct.PLL2.PLLP2 = 5;
+    RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
+    RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL4.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL4.PLLM = 6;
+    RCC_OscInitStruct.PLL4.PLLN = 100;
+    RCC_OscInitStruct.PLL4.PLLFractional = 0;
+    RCC_OscInitStruct.PLL4.PLLP1 = 4;
+    RCC_OscInitStruct.PLL4.PLLP2 = 4;
 
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+      Error_Handler();
+    }
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
