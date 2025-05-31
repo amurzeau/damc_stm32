@@ -24,22 +24,6 @@ static uint32_t clampDivider(uint32_t divider, uint32_t min, uint32_t max, bool 
 		return roundToLowerPowerOf2(divider);
 }
 
-static uint32_t getBitPosition(uint32_t value) {
-	uint32_t res = 0;
-
-	if(!value) {
-		return 32;
-	}
-
-	// Left shift 1 and check each bit
-	while((value & 1) == 0) {
-		value = value >> 1;
-		res++;
-	}
-
-	return res;
-}
-
 #ifdef STM32F723xx
 #include <stm32f7xx_hal.h>
 
@@ -123,17 +107,9 @@ void setRawAHBDivider(uint32_t current_ahb_divider, uint32_t ahb_divider) {
 }
 
 void CPUFrequencyScaling::setAHBDivider(uint32_t divider) {
-	// Max divider: 8 for minimal APB1 frequency of 27Mhz
-	if(divider > 4) {
-		divider = 4;
-	} else if(divider < 1) {
-		divider = 1;
-	}
-
-	// Round to lower power of two
-	uint32_t ahb_divider = 1;
-	while(ahb_divider * 2 <= divider)
-		ahb_divider *= 2;
+	// Max divider: 4 for minimal APB1 frequency of 54Mhz
+	// We can't use 27Mhz as in this case the timer frequency will not be x2 and we get a too low frequency for TIM5.
+	uint32_t ahb_divider = clampDivider(divider, 1, 4, true);
 
 	// Check if already at that divider
 	if(ahb_divider == current_ahb_divider)
@@ -174,6 +150,22 @@ void CPUFrequencyScaling::adjustCpuFreq(CpuFreqAdjustement adjustment) {
 #include <stm32n6xx_hal.h>
 #include <stm32n6xx_hal_cortex.h>
 #include <stm32n6xx_hal_rcc.h>
+
+static uint32_t getBitPosition(uint32_t value) {
+	uint32_t res = 0;
+
+	if(!value) {
+		return 32;
+	}
+
+	// Left shift 1 and check each bit
+	while((value & 1) == 0) {
+		value = value >> 1;
+		res++;
+	}
+
+	return res;
+}
 
 static void updateTimerPrescaler() {
 	uint32_t timer_frequency = HAL_RCC_GetSysClockFreq() / (1UL << LL_RCC_GetTIMPrescaler());
@@ -413,8 +405,8 @@ CPUFrequencyScaling::CPUFrequencyScaling(OscRoot* oscRoot)
       oscRoot(oscRoot),
       oscManualControl(this, "manual", false),
 #if defined(STM32F723xx)
-      oscCpuFrequency(this, "freq", SystemCoreClock),
-      oscCpuDivider(this, "divider", 1, false),
+      oscCpuFrequency(this, "cpuFreq", SystemCoreClock),
+      oscCpuDivider(this, "cpuDivider", 1, false),
 #elif defined(STM32N657xx)
       oscPllFrequency(this, "freq", HAL_RCCEx_GetPLL1CLKFreq()),
       oscCpuFrequency(this, "cpuFreq", SystemCoreClock),
