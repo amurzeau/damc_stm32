@@ -2,10 +2,15 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "types.h"
 #include "tests.h"
 #include "sizes.h"
+
+#ifndef MEMTESTER_ENABLE_PRINTF
+#define printf(...)
+#endif
 
 static const struct test tests[] = {
     { "Random Value", test_random_value },
@@ -40,9 +45,21 @@ unsigned int memtester_stm32(void* ram, size_t bufsize, size_t loops) {
 	size_t i;
 
     for(loop=1; ((!loops) || loop <= loops); loop++) {
-        if (test_stuck_address(ram, bufsize / sizeof(ul))) {
-            exit_code |= 1;
-        }
+      printf("Loop %u", loop);
+      if (loops)
+      {
+        printf("/%u", loops);
+      }
+      printf(":\n");
+      printf("  %-20s: ", "Stuck Address");
+      if (test_stuck_address(ram, bufsize / sizeof(ul)))
+      {
+        exit_code |= 1;
+      }
+      else
+      {
+        printf("ok\n");
+      }
         for (i=0;;i++) {
             if (!tests[i].name) break;
             /* If using a custom testmask, only run this test if the
@@ -51,8 +68,13 @@ unsigned int memtester_stm32(void* ram, size_t bufsize, size_t loops) {
             // if (testmask && (!((1 << i) & testmask))) {
                 // continue;
             // }
+            printf("  %-20s: ", tests[i].name);
             if (tests[i].fp(bufa, bufb, count)) {
                 exit_code |= 1 << (i+1);
+            }
+            else
+            {
+              printf("ok\n");
             }
             /* clear buffer */
             memset((void *) ram, 255, bufsize);

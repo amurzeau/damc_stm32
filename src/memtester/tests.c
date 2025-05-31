@@ -21,15 +21,19 @@
 #include "types.h"
 #include "sizes.h"
 
+#ifndef MEMTESTER_ENABLE_PRINTF
+
 #ifdef putchar
 // Clang use a define
 #undef putchar
 #endif
-
 #define fflush(...)
 #define fprintf(...)
 #define printf(...)
 #define putchar(...)
+#else
+#define fprintf(fd, ...) printf(__VA_ARGS__)
+#endif
 
 char progress[] = "-\\|/";
 #define PROGRESSLEN 4
@@ -49,7 +53,10 @@ union {
 /* Function definitions. */
 
 void  __attribute__ ((noinline)) error() {
-	while(1);
+  fflush(stderr);
+  fflush(stdout);
+  while (1)
+    ;
 }
 
 int compare_regions(ulv *bufa, ulv *bufb, size_t count) {

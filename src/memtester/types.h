@@ -14,6 +14,8 @@
 
 #include "sizes.h"
 
+// #define MEMTESTER_ENABLE_PRINTF
+
 typedef unsigned long ul;
 typedef unsigned long long ull;
 typedef unsigned long volatile ulv;
