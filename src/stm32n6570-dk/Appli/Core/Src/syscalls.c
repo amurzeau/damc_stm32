@@ -29,6 +29,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/times.h>
+#include "stm32n6xx_ll_usart.h"
 
 
 /* Variables */
@@ -95,15 +96,16 @@ int _close(int file)
   return -1;
 }
 
-
-int _fstat(int file, struct stat *st)
+// Attribute used is necessary so _fstat and _isatty are correctly used when linking C library.
+// Else the linker will error out due to undefined references.
+__attribute__((used)) int _fstat(int file, struct stat *st)
 {
   (void)file;
   st->st_mode = S_IFCHR;
   return 0;
 }
 
-int _isatty(int file)
+__attribute__((used)) int _isatty(int file)
 {
   (void)file;
   return 1;
@@ -180,6 +182,7 @@ int _execve(char *name, char **argv, char **env)
 static int sample_putc(char c, FILE *file)
 {
   (void)file; /* Not used in this function */
+  __io_putchar(c);
   return c;
 }
 
@@ -195,3 +198,17 @@ FILE *const stdin = &__stdio;
 __strong_reference(stdin, stdout);
 __strong_reference(stdin, stderr);
 #endif
+
+int __io_putchar(int c)
+{
+  // Ignore writes if USART not enabled
+  if (!__HAL_RCC_USART1_IS_CLK_ENABLED() || !LL_USART_IsEnabled(USART1))
+    return c;
+
+  while (!LL_USART_IsActiveFlag_TXE(USART1))
+  {
+  }
+  LL_USART_TransmitData8(USART1, c);
+
+  return c;
+}

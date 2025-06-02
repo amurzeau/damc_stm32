@@ -182,6 +182,7 @@ int _execve(char *name, char **argv, char **env)
 static int sample_putc(char c, FILE *file)
 {
   (void)file; /* Not used in this function */
+  __io_putchar(c);
   return c;
 }
 
