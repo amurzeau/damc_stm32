@@ -11,7 +11,7 @@
 */
 #include "model.h"
 
-#if defined(STM32N657xx)
+#if defined(ENABLE_MODEL)
 
 #include <math.h>
 
@@ -630,5 +630,12 @@ __attribute__((noinline)) void tinydenoiser_run(const float tensor_input[512], f
 	fft_data[1] = fft_data[256 * 2];
 	arm_rfft_fast_f32(&fft_instance, fft_data, tensor_output, 1);
 }
+#else
+
+void tinydenoiser_model_init() {}
+void tinydenoiser_model_reset() {}
+void tinydenoiser_inference(const model_data_type_t tensor_input[1][257][1],
+                            model_data_type_t tensor_output[1][257][1]) {}
+void tinydenoiser_run(const float tensor_input[512], float tensor_output[512]) {}
 
 #endif

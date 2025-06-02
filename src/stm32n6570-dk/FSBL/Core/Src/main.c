@@ -40,7 +40,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-//#define MEMORY_BENCHMARK
+#define MEMORY_BENCHMARK
 //#define MEMORY_MEMTESTER
 
 /* USER CODE END PD */
@@ -240,7 +240,7 @@ int main(void)
 #endif
 
 #if defined(MEMORY_BENCHMARK) || defined(MEMORY_MEMTESTER)
-  HAL_UART_DeInit(&huart1);
+  //HAL_UART_DeInit(&huart1);
 #endif
 
   // Move ISR vector to DTCM

@@ -48,6 +48,9 @@ target_link_libraries(${TARGET_NAME} PUBLIC CMSISDSP)
 target_link_libraries(${TARGET_NAME} PUBLIC stm32cube)
 target_link_libraries(${TARGET_NAME} PUBLIC common_flags)
 
+#target_link_options(${TARGET_NAME} PRIVATE  -fverbose-asm -save-temps)
+target_link_options(${TARGET_NAME} PRIVATE -mpure-code -ftree-vectorizer-verbose=5)
+
 target_include_directories(
     ${TARGET_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/USBClass/AUDIO/Inc
@@ -67,6 +70,7 @@ target_compile_options(
 	-Wall
 	-Wdouble-promotion
 	-Wno-psabi
+	-ftree-vectorizer-verbose=5
 )
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	target_compile_options(

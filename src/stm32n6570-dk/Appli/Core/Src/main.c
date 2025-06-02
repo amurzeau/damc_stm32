@@ -25,6 +25,7 @@
 #include "AudioCApi.h"
 #include "Tracing.h"
 #include <stm32n6570_discovery.h>
+#include "model_benchmark.h"
 
 /* USER CODE END Includes */
 
@@ -112,6 +113,10 @@ int main(void)
   PeriphCommonClock_Config();
 
   /* USER CODE END Init */
+
+  model_benchmark();
+  while (1)
+    ;
 
   /* USER CODE BEGIN SysInit */
 
@@ -380,8 +385,8 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x34000000;
-  MPU_InitStruct.LimitAddress = 0x342dffff;
+  MPU_InitStruct.BaseAddress = 0x90000000;
+  MPU_InitStruct.LimitAddress = 0x92000000;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RO;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;

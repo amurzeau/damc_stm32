@@ -38,7 +38,7 @@ ENTRY(Reset_Handler)
 MEMORY
 {
   DTCM (xrw) : ORIGIN = 0x20000000, LENGTH = 128K
-  ROM (xrw)  : ORIGIN = 0x34000000, LENGTH = 2944K
+  ROM (xrw)  : ORIGIN = 0x90000000, LENGTH = 16M
   RAM (xrw)  : ORIGIN = 0x342e0000, LENGTH = 896K
 }
 
@@ -47,7 +47,7 @@ _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 _sstack = _estack - _Min_Stack_Size;
 
 _Min_Heap_Size = 128*1024; /* required amount of heap */
-_Min_Stack_Size = 0x2000; /* required amount of stack */
+_Min_Stack_Size = 0x4000; /* required amount of stack */
 
 /* Heap end address */
 __heap_end = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size; /* end of heap Ram type memory */

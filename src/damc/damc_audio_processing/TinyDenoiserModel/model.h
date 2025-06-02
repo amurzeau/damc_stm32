@@ -2,6 +2,8 @@
 
 #if defined(STM32N657xx)
 
+// #define ENABLE_MODEL
+
 #ifndef __x86_64
 #include <arm_mve.h>
 #endif
