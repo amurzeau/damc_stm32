@@ -63,16 +63,16 @@ loop2:
 	mov r0, r5
 	// Loop number according to bytes tested per loop
 #ifdef USE_MVE_LOADS
-	mov r2, r7, lsr 6
+	mov r2, r7, lsr #6
 #else
-	mov r2, r7, lsr 7
+	mov r2, r7, lsr #7
 #endif
 #else
 	// Loop number according to bytes tested per loop
 #ifdef USE_MVE_LOADS
-	mov r2, r1, lsr 6
+	mov r2, r1, lsr #6
 #else
-	mov r2, r1, lsr 7
+	mov r2, r1, lsr #7
 #endif
 #endif
 
