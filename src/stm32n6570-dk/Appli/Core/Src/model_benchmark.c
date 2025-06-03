@@ -154,7 +154,6 @@ const char *counters_name[256];
 
 void save_counters(const char *name)
 {
-  return;
   ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk | PMU_CNTENCLR_CNT0_ENABLE_Msk | PMU_CNTENSET_CNT1_ENABLE_Msk);
   __DMB();
   if (current_counter->flag != 0xFFFF)
@@ -183,10 +182,10 @@ static model_data_type_t tensor_emb[1][1][512] __attribute__((section(".dtcm")))
 static model_data_type_t tensor_c0[1][64][1][96] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
 static model_data_type_t tensor_lsnr[1][1][1] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
 
-static model_data_type_t tensor_m[1][1][1][32] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
+volatile model_data_type_t tensor_m[1][1][1][32] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
 
-static model_data_type_t tensor_coefs[1][1][96][10] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
-static model_data_type_t tensor_235[1][1][1] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
+volatile model_data_type_t tensor_coefs[1][1][96][10] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
+volatile model_data_type_t tensor_235[1][1][1] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
 
 static void randomize(model_data_type_t *array, size_t size_bytes)
 {

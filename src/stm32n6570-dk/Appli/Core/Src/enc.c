@@ -378,7 +378,7 @@ FUNC_PREFIX void node__df_fc_emb_0_Einsum(const model_data_type_t X[1][1][32][96
 
           for (size_t i = 0; i < 96; i++)
           {
-            Y[b][t][g][h] = X[b][t][g][i] * W[g][i][h];
+            Y[b][t][g][h] += X[b][t][g][i] * W[g][i][h];
           }
         }
       }
@@ -919,7 +919,7 @@ FUNC_PREFIX void node__emb_gru_linear_in_0_Einsum(const model_data_type_t X[1][1
 
           for (size_t i = 0; i < 32; i++)
           {
-            Y[b][t][g][h] = X[b][t][g][i] * W[g][i][h];
+            Y[b][t][g][h] += X[b][t][g][i] * W[g][i][h];
           }
         }
       }
@@ -992,7 +992,7 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
   /* Gates */
   static model_data_type_t gates[3][1][256] __attribute__((aligned(16))) __attribute__((section(".dtcm")));
 
-  arm_copy_f16(initial_h, Y_h, sizeof(*initial_h) / 2);
+  arm_copy_f16((const float16_t *)initial_h, (float16_t *)Y_h, sizeof(*initial_h) / 2);
 
   for (int s = 0; s < sequence_lenght; s++)
   {
@@ -1001,7 +1001,15 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
     {
       for (int i = 0; i < 3; i++)
       {
-        arm_copy_f16(&B[0][i * hs], gates[i][b], hs * sizeof(model_data_type_t) / 2);
+        arm_copy_f16((const float16_t *)&B[0][i * hs], (float16_t *)gates[i][b], hs);
+      }
+
+      for (int i = 0; i < 2; i++)
+      {
+        for (int h = 0; h < hs; h++)
+        {
+          gates[i][b][h] += B[0][Rb + i * hs + h];
+        }
       }
 
       for (int g = 0; g < 3; g++)
@@ -1015,35 +1023,30 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
       }
 
       // z - update gate (0)
-      arm_nn_sigmoid_f16(gates[0][b], gates[0][b], hs);
+      arm_nn_sigmoid_f16((const float16_t *)gates[0][b], (float16_t *)gates[0][b], hs);
 
       // r - reset gate (1)
-      arm_nn_sigmoid_f16(gates[1][b], gates[1][b], hs);
-
-      for (int i = 0; i < 2; i++)
-      {
-        for (int h = 0; h < hs; h++)
-        {
-          gates[i][b][h] += B[0][Rb + i * hs + h];
-        }
-      }
+      arm_nn_sigmoid_f16((const float16_t *)gates[1][b], (float16_t *)gates[1][b], hs);
 
       for (int h = 0; h < hs; h++)
       {
+        model_data_type_t acc = 0;
         for (int i = 0; i < hs; i++)
         {
-          gates[2][b][h] += (model_data_type_t)((model_data_type_t)(B[0][Rb + 2 * hs + h] + (model_data_type_t)(R[0][2 * hs + h][i] * Y_h[0][b][h])) * gates[1][b][h]);
+          acc += R[0][2 * hs + h][i] * Y_h[0][b][i];
         }
+        gates[2][b][h] += (acc + B[0][Rb + 2 * hs + h]) * gates[1][b][h];
       }
 
       // h - hidden gate (2)
-      arm_nn_tanh_f16(gates[2][b], gates[2][b], hs);
+      arm_nn_tanh_f16((const float16_t *)gates[2][b], (float16_t *)gates[2][b], hs);
 
       for (int h = 0; h < hs; h++)
       {
         Y_h[0][b][h] =
-          (model_data_type_t)((model_data_type_t)((model_data_type_t)1.0f16 - gates[0][b][h]) * gates[2][b][h]) + (model_data_type_t)(gates[0][b][h] * Y_h[0][b][h]);
+          (model_data_type_t)((model_data_type_t)((model_data_type_t)(1.0f16 - gates[0][b][h]) * gates[2][b][h]) + (model_data_type_t)(gates[0][b][h] * Y_h[0][b][h]));
       }
+      arm_copy_f16((const float16_t *)Y_h[0][b], (float16_t *)Y[s][0][b], hs);
     }
 
   } /* sequences */
@@ -1099,7 +1102,7 @@ FUNC_PREFIX void node__emb_gru_linear_out_0_Einsum(const model_data_type_t X[1][
 
           for (size_t i = 0; i < 16; i++)
           {
-            Y[b][t][g][h] = X[b][t][g][i] * W[g][i][h];
+            Y[b][t][g][h] += X[b][t][g][i] * W[g][i][h];
           }
         }
       }
