@@ -214,6 +214,49 @@ float16x8_t vmaxnmq(float16x8_t v, float16x8_t low)
 
 #endif
 
+
+void arm_mult_accumulate_f16(const float16_t *pSrcA, float16_t pSrcB, float16_t *pDst, uint32_t blockSize)
+{
+  uint32_t blkCnt; /* Loop counter */
+
+  f16x8_t vec1;
+  f16x8_t vec2;
+  f16x8_t scalar = vdupq_n_f16(pSrcB);
+  f16x8_t res;
+
+  /* Compute 4 outputs at a time */
+  blkCnt = blockSize >> 3U;
+  while (blkCnt > 0U)
+  {
+    /* C = A + B */
+
+    /* Add and then store the results in the destination buffer. */
+    vec1 = vld1q(pSrcA);
+    vec2 = vld1q(pDst);
+    res = vfmaq(vec2, vec1, scalar);
+    vst1q(pDst, res);
+
+    /* Increment pointers */
+    pSrcA += 8;
+    pDst += 8;
+
+    /* Decrement the loop counter */
+    blkCnt--;
+  }
+
+  /* Tail */
+  blkCnt = blockSize & 0x7;
+  if (blkCnt > 0U)
+  {
+    /* C = A + B */
+    mve_pred16_t p0 = vctp16q(blkCnt);
+    vec1 = vld1q(pSrcA);
+    vec2 = vld1q(pDst);
+    res = vfmaq(vec2, vec1, scalar);
+    vstrhq_p(pDst, res, p0);
+  }
+}
+
 #if 0
 
 void arm_mat_vec_mult_add_f16(uint32_t numRows, uint32_t numCols, const model_data_type_t *mat, const model_data_type_t *vec, model_data_type_t *pDst)

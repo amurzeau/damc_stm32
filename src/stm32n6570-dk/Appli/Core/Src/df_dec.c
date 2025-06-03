@@ -100,20 +100,17 @@ FUNC_PREFIX void node__df_gru_linear_in_linear_in_0_Einsum(const model_data_type
 	 * attributes:
 	 *   equation: btgi,gih->btgh
 	 */
+  arm_fill_f16(0.0f16, (float16_t *)Y, sizeof(*Y) / sizeof(model_data_type_t));
+
   for (size_t b = 0; b < 1; b++)
   {
     for (size_t t = 0; t < 1; t++)
     {
       for (size_t g = 0; g < 8; g++)
       {
-        for (size_t h = 0; h < 32; h++)
+        for (size_t i = 0; i < 64; i++)
         {
-          Y[b][t][g][h] = 0.f;
-
-          for (size_t i = 0; i < 64; i++)
-          {
-            Y[b][t][g][h] += X[b][t][g][i] * W[g][i][h];
-          }
+          arm_mult_accumulate_f16((const float16_t *)W[g][i], X[b][t][g][i], (float16_t *)Y[b][t][g], 32);
         }
       }
     }
@@ -397,20 +394,17 @@ FUNC_PREFIX void node__df_skip_Einsum(const model_data_type_t X[1][1][16][32], c
 	 * attributes:
 	 *   equation: btgi,gih->btgh
 	 */
+  arm_fill_f16(0.0f16, (float16_t *)Y, sizeof(*Y) / sizeof(model_data_type_t));
+
   for (size_t b = 0; b < 1; b++)
   {
     for (size_t t = 0; t < 1; t++)
     {
       for (size_t g = 0; g < 16; g++)
       {
-        for (size_t h = 0; h < 16; h++)
+        for (size_t i = 0; i < 32; i++)
         {
-          Y[b][t][g][h] = 0.f;
-
-          for (size_t i = 0; i < 32; i++)
-          {
-            Y[b][t][g][h] += X[b][t][g][i] * W[g][i][h];
-          }
+          arm_mult_accumulate_f16((const float16_t *)W[g][i], X[b][t][g][i], (float16_t *)Y[b][t][g], 16);
         }
       }
     }
@@ -683,20 +677,17 @@ FUNC_PREFIX void node__df_out_df_out_0_Einsum(const model_data_type_t X[1][1][16
 	 * attributes:
 	 *   equation: btgi,gih->btgh
 	 */
+  arm_fill_f16(0.0f16, (float16_t *)Y, sizeof(*Y) / sizeof(model_data_type_t));
+
   for (size_t b = 0; b < 1; b++)
   {
     for (size_t t = 0; t < 1; t++)
     {
       for (size_t g = 0; g < 16; g++)
       {
-        for (size_t h = 0; h < 60; h++)
+        for (size_t i = 0; i < 16; i++)
         {
-          Y[b][t][g][h] = 0.f;
-
-          for (size_t i = 0; i < 16; i++)
-          {
-            Y[b][t][g][h] += X[b][t][g][i] * W[g][i][h];
-          }
+          arm_mult_accumulate_f16((const float16_t *)W[g][i], X[b][t][g][i], (float16_t *)Y[b][t][g], 60);
         }
       }
     }
