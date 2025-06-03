@@ -199,24 +199,12 @@ FUNC_PREFIX void node__df_gru_gru_GRU(const model_data_type_t X[1][1][256],
 
       for (int g = 0; g < 3; g++)
       {
-        for (int h = 0; h < hs; h++)
-        {
-          for (int i = 0; i < ds; i++)
-          {
-            gates[g][b][h] += (model_data_type_t)(X[s][b][i] * W[0][g * hs + h][i]);
-          }
-        }
+        arm_mat_vec_mult_add_f16(hs, ds, W[0][g * hs], X[s][b], gates[g][b]);
       }
 
       for (int g = 0; g < 2; g++)
       {
-        for (int h = 0; h < hs; h++)
-        {
-          for (int i = 0; i < ds; i++)
-          {
-            gates[g][b][h] += (model_data_type_t)(Y_h[0][b][i] * R[0][g * hs + h][i]);
-          }
-        }
+        arm_mat_vec_mult_add_f16(hs, hs, R[0][g * hs], Y_h[0][b], gates[g][b]);
       }
 
       // z - update gate (0)
@@ -310,24 +298,12 @@ FUNC_PREFIX void node__df_gru_gru_GRU_1(const model_data_type_t X[1][1][256],
 
       for (int g = 0; g < 3; g++)
       {
-        for (int h = 0; h < hs; h++)
-        {
-          for (int i = 0; i < ds; i++)
-          {
-            gates[g][b][h] += (model_data_type_t)(X[s][b][i] * W[0][g * hs + h][i]);
-          }
-        }
+        arm_mat_vec_mult_add_f16(hs, ds, W[0][g * hs], X[s][b], gates[g][b]);
       }
 
       for (int g = 0; g < 2; g++)
       {
-        for (int h = 0; h < hs; h++)
-        {
-          for (int i = 0; i < ds; i++)
-          {
-            gates[g][b][h] += (model_data_type_t)(Y_h[0][b][i] * R[0][g * hs + h][i]);
-          }
-        }
+        arm_mat_vec_mult_add_f16(hs, hs, R[0][g * hs], Y_h[0][b], gates[g][b]);
       }
 
       // z - update gate (0)
@@ -784,15 +760,26 @@ void deepfilternet_run_df_dec(const model_data_type_t tensor_emb[1][1][512],
                               model_data_type_t tensor_coefs[1][1][96][10],
                               model_data_type_t tensor_235[1][1][1])
 {
+  save_counters("Reshape");
   node__df_gru_linear_in_linear_in_0_Reshape(tensor_emb, tensor__df_gru_linear_in_linear_in_0_Concat_output_0, tu0.tensor__df_gru_linear_in_linear_in_0_Reshape_output_0);
+
+  save_counters("Einsum");
   node__df_gru_linear_in_linear_in_0_Einsum(tu0.tensor__df_gru_linear_in_linear_in_0_Reshape_output_0,
                                             tensor_df_gru_linear_in_0_weight,
                                             tu1.tensor__df_gru_linear_in_linear_in_0_Einsum_output_0);
+
+  save_counters("Reshape_1");
   node__df_gru_linear_in_linear_in_0_Reshape_1(tu1.tensor__df_gru_linear_in_linear_in_0_Einsum_output_0,
                                                tensor__df_gru_linear_in_linear_in_0_Concat_1_output_0,
                                                tu1.tensor__df_gru_linear_in_linear_in_0_Reshape_1_output_0);
+
+  save_counters("Relu");
   node__df_gru_linear_in_linear_in_1_Relu(tu1.tensor__df_gru_linear_in_linear_in_0_Reshape_1_output_0, tu0.tensor__df_gru_linear_in_linear_in_1_Relu_output_0);
+
+  save_counters("Transpose");
   node__df_gru_gru_Transpose(tu0.tensor__df_gru_linear_in_linear_in_1_Relu_output_0, tu0.tensor__df_gru_gru_Transpose_output_0);
+
+  save_counters("GRU");
   node__df_gru_gru_GRU(tu0.tensor__df_gru_gru_Transpose_output_0,
                        tensor_onnx__GRU_291,
                        tensor_onnx__GRU_292,
@@ -800,7 +787,11 @@ void deepfilternet_run_df_dec(const model_data_type_t tensor_emb[1][1][512],
                        tensor__df_gru_gru_Slice_output_0,
                        tu1.tensor__df_gru_gru_GRU_output_0,
                        tensor__df_gru_gru_GRU_output_1);
+
+  save_counters("Squeeze");
   node__df_gru_gru_Squeeze(tu1.tensor__df_gru_gru_GRU_output_0, tu1.tensor__df_gru_gru_Squeeze_output_0);
+
+  save_counters("GRU_1");
   node__df_gru_gru_GRU_1(tu1.tensor__df_gru_gru_Squeeze_output_0,
                          tensor_onnx__GRU_311,
                          tensor_onnx__GRU_312,
@@ -808,27 +799,67 @@ void deepfilternet_run_df_dec(const model_data_type_t tensor_emb[1][1][512],
                          tensor__df_gru_gru_Slice_1_output_0,
                          tu0.tensor__df_gru_gru_GRU_1_output_0,
                          tensor__df_gru_gru_GRU_1_output_1);
+
+  save_counters("Squeeze_1");
   node__df_gru_gru_Squeeze_1(tu0.tensor__df_gru_gru_GRU_1_output_0, tu0.tensor__df_gru_gru_Squeeze_1_output_0);
+
+  save_counters("Transpose_1");
   node__df_gru_gru_Transpose_1(tu0.tensor__df_gru_gru_Squeeze_1_output_0, tu0.tensor__df_gru_gru_Transpose_1_output_0);
+
+  save_counters("Reshape");
   node__df_skip_Reshape(tensor_emb, tensor__df_skip_Concat_output_0, tu1.tensor__df_skip_Reshape_output_0);
+
+  save_counters("Einsum");
   node__df_skip_Einsum(tu1.tensor__df_skip_Reshape_output_0, tensor_df_skip_weight, tu2.tensor__df_skip_Einsum_output_0);
+
+  save_counters("Reshape_1");
   node__df_skip_Reshape_1(tu2.tensor__df_skip_Einsum_output_0, tensor__df_skip_Concat_1_output_0, tu2.tensor__df_skip_Reshape_1_output_0);
+
+  save_counters("Add");
   node__Add(tu0.tensor__df_gru_gru_Transpose_1_output_0, tu2.tensor__df_skip_Reshape_1_output_0, tu1.tensor__Add_output_0);
+
+  save_counters("reshape");
   node_gemm_input_reshape(tu1.tensor__Add_output_0, tensor_gemm_input_shape, tu1.tensor_gemm_input_reshape_arg);
+
+  save_counters("MatMulAddFusion");
   node__df_fc_a_df_fc_a_0_MatMul_MatMulAddFusion(tu1.tensor_gemm_input_reshape_arg, tensor_onnx__MatMul_321, tensor_df_fc_a_0_bias, tu0.tensor_gemm_output_reshape_arg);
+
+  save_counters("reshape");
   node_gemm_output_reshape(tu0.tensor_gemm_output_reshape_arg, tensor_gemm_output_shape, tu0.tensor__df_fc_a_df_fc_a_0_Add_output_0);
+
+  save_counters("Sigmoid");
   node__df_fc_a_df_fc_a_1_Sigmoid(tu0.tensor__df_fc_a_df_fc_a_0_Add_output_0, tensor_235);
+
+  save_counters("Conv");
   node__df_convp_df_convp_1_Conv(tensor_c0, tensor_df_convp_1_weight, tu0.tensor__df_convp_df_convp_1_Conv_output_0);
+
+  save_counters("Conv");
   node__df_convp_df_convp_2_Conv(tu0.tensor__df_convp_df_convp_1_Conv_output_0,
                                  tensor_onnx__Conv_268,
                                  tensor_onnx__Conv_269,
                                  tu2.tensor__df_convp_df_convp_2_Conv_output_0);
+
+  save_counters("Relu");
   node__df_convp_df_convp_4_Relu(tu2.tensor__df_convp_df_convp_2_Conv_output_0, tu0.tensor__df_convp_df_convp_4_Relu_output_0);
+
+  save_counters("Transpose");
   node__Transpose(tu0.tensor__df_convp_df_convp_4_Relu_output_0, tu2.tensor__Transpose_output_0);
+
+  save_counters("Reshape");
   node__df_out_df_out_0_Reshape(tu1.tensor__Add_output_0, tensor__df_out_df_out_0_Concat_output_0, tu1.tensor__df_out_df_out_0_Reshape_output_0);
+
+  save_counters("Einsum");
   node__df_out_df_out_0_Einsum(tu1.tensor__df_out_df_out_0_Reshape_output_0, tensor_df_out_0_weight, tu0.tensor__df_out_df_out_0_Einsum_output_0);
+
+  save_counters("Reshape_1");
   node__df_out_df_out_0_Reshape_1(tu0.tensor__df_out_df_out_0_Einsum_output_0, tensor__df_out_df_out_0_Concat_1_output_0, tu0.tensor__df_out_df_out_0_Reshape_1_output_0);
+
+  save_counters("Tanh");
   node__df_out_df_out_1_Tanh(tu0.tensor__df_out_df_out_0_Reshape_1_output_0, tu1.tensor__df_out_df_out_1_Tanh_output_0);
+
+  save_counters("Reshape");
   node__Reshape(tu1.tensor__df_out_df_out_1_Tanh_output_0, tensor__Concat_output_0, tu1.tensor__Reshape_output_0);
+
+  save_counters("Add_1");
   node__Add_1(tu1.tensor__Reshape_output_0, tu2.tensor__Transpose_output_0, tensor_coefs);
 }

@@ -120,18 +120,89 @@ void arm_nn_tanh_f16(const float16_t *pSrc, float16_t *pDst, uint32_t blockSize)
   }
 }
 
-
-void arm_mat_vec_mult_add_f16(uint32_t numRows, uint32_t numCols, const float16_t *mat, const float16_t *vec, float16_t *pDst)
+/*
+void arm_mat_vec_mult_add_f16(uint32_t numRows, uint32_t numCols, const model_data_type_t *mat, const model_data_type_t *vec, model_data_type_t *pDst)
 {
   for (int h = 0; h < numRows; h++)
   {
     for (int i = 0; i < numCols; i++)
     {
-      pDst[h] += (float16_t)(vec[i] * mat[h * numCols + i]);
+      pDst[h] += vec[i] * mat[h * numCols + i];
     }
   }
-}
+}*/
 
+
+ARM_DSP_ATTRIBUTE void
+arm_mat_vec_mult_add_f16(uint32_t numRows, uint32_t numCols, const model_data_type_t *mat, const model_data_type_t *pSrcVec, model_data_type_t *pDstVec)
+{
+  const float16_t *pSrcA = (float16_t *)mat;
+  const float16_t *pInA0;
+  const float16_t *pInA1;
+  float16_t *px;
+  int32_t row;
+  uint32_t blkCnt; /* loop counters */
+
+  row = numRows;
+  px = (float16_t *)pDstVec;
+
+  while (row >= 1)
+  {
+    f16x8_t vecIn, acc0;
+    float16_t const *pSrcA0Vec, *pInVec;
+    float16_t const *pSrcVecPtr = pSrcVec;
+    /*
+         * Initialize the pointers to last MatrixA row
+         */
+    pInA0 = pSrcA;
+    /*
+         * Initialize the vector pointer
+         */
+    pInVec = pSrcVecPtr;
+    /*
+         * reset accumulators
+         */
+    acc0 = vdupq_n_f16(0.0f);
+
+    pSrcA0Vec = pInA0;
+
+    blkCnt = numCols >> 3;
+    while (blkCnt > 0U)
+    {
+      f16x8_t vecA;
+
+      vecIn = vld1q(pInVec);
+      pInVec += 8;
+      vecA = vld1q(pSrcA0Vec);
+      pSrcA0Vec += 8;
+      acc0 = vfmaq(acc0, vecIn, vecA);
+
+      blkCnt--;
+    }
+    /*
+         * tail
+         * (will be merged thru tail predication)
+         */
+    blkCnt = numCols & 7;
+    if (blkCnt > 0U)
+    {
+      mve_pred16_t p0 = vctp16q(blkCnt);
+      f16x8_t vecA;
+
+      vecIn = vldrhq_z_f16(pInVec, p0);
+      vecA = vld1q(pSrcA0Vec);
+      acc0 = vfmaq(acc0, vecIn, vecA);
+    }
+    /*
+         * Sum the partial parts
+         */
+    *px++ += vecAddAcrossF16Mve(acc0);
+    /*
+         * Decrement the row loop counter
+         */
+    row -= 1;
+  }
+}
 
 void arm_elementwise_max_f16(const float16_t *pSrc, float16_t *pDst, float16_t low, uint32_t numSamples)
 {

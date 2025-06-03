@@ -146,20 +146,32 @@ struct event_counter_desc counters[] = {
   {ARM_PMU_CTI_TRIGOUT7, "Cross-trigger Interface output trigger 7"},
   {0xFFFF, "Total Cycles"},
 };
-static uint32_t counters_value[sizeof(counters) / sizeof(counters[0])];
+const struct event_counter_desc *current_counter;
+size_t counters_index;
+size_t counters_step_index;
+uint32_t counters_value[sizeof(counters) / sizeof(counters[0])][256];
+const char *counters_name[256];
 
-uint32_t getCounter(uint32_t pmu_flag)
+void save_counters(const char *name)
 {
-  for (size_t i = 0; i < sizeof(counters) / sizeof(counters[0]); i++)
+  return;
+  ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk | PMU_CNTENCLR_CNT0_ENABLE_Msk | PMU_CNTENSET_CNT1_ENABLE_Msk);
+  __DMB();
+  if (current_counter->flag != 0xFFFF)
   {
-    if (counters[i].flag == pmu_flag)
-    {
-      return counters_value[i];
-    }
+    counters_value[counters_index][counters_step_index] = ARM_PMU_Get_EVCNTR(0) | (ARM_PMU_Get_EVCNTR(1) << 16);
   }
-  return 0;
+  else
+  {
+    counters_value[counters_index][counters_step_index] = ARM_PMU_Get_CCNTR();
+  }
+  counters_step_index++;
+  counters_name[counters_step_index] = name;
+  ARM_PMU_EVCNTR_ALL_Reset();
+  ARM_PMU_CYCCNT_Reset();
+  __DMB();
+  ARM_PMU_CNTR_Enable(PMU_CNTENCLR_CCNTR_ENABLE_Msk | PMU_CNTENCLR_CNT0_ENABLE_Msk | PMU_CNTENSET_CNT1_ENABLE_Msk);
 }
-
 
 static model_data_type_t tensor_feat_erb[1][1][1][32] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
 static model_data_type_t tensor_feat_spec[1][2][1][96] __attribute__((section(".dtcm"))) __attribute__((aligned(16)));
@@ -218,17 +230,20 @@ void model_benchmark()
   randomize((model_data_type_t *)tensor_235, sizeof(tensor_235));
 
 
-  for (size_t i = 0; i < sizeof(counters) / sizeof(counters[0]); i++)
+  for (counters_index = 0; counters_index < sizeof(counters) / sizeof(counters[0]); counters_index++)
   {
-    const struct event_counter_desc *const event_counter = &counters[i];
+    current_counter = &counters[counters_index];
     ARM_PMU_EVCNTR_ALL_Reset();
     ARM_PMU_CYCCNT_Reset();
-    if (event_counter->flag != 0xFFFF)
+    if (current_counter->flag != 0xFFFF)
     {
-      ARM_PMU_Set_EVTYPER(0, event_counter->flag);
+      ARM_PMU_Set_EVTYPER(0, current_counter->flag);
       ARM_PMU_Set_EVTYPER(1, ARM_PMU_CHAIN);
     }
     SCB_CleanInvalidateDCache();
+    counters_step_index = 0;
+    counters_name[counters_step_index] = "Start";
+    __DMB();
     ARM_PMU_CNTR_Enable(PMU_CNTENCLR_CCNTR_ENABLE_Msk | PMU_CNTENCLR_CNT0_ENABLE_Msk | PMU_CNTENSET_CNT1_ENABLE_Msk);
 
     deepfilternet_run_enc(tensor_feat_erb, tensor_feat_spec, tensor_e0, tensor_e1, tensor_e2, tensor_e3, tensor_emb, tensor_c0, tensor_lsnr);
@@ -236,19 +251,35 @@ void model_benchmark()
     deepfilternet_run_df_dec(tensor_emb, tensor_c0, tensor_coefs, tensor_235);
 
     ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk | PMU_CNTENCLR_CNT0_ENABLE_Msk | PMU_CNTENSET_CNT1_ENABLE_Msk);
-    if (event_counter->flag != 0xFFFF)
+    if (current_counter->flag != 0xFFFF)
     {
-      counters_value[i] = ARM_PMU_Get_EVCNTR(0) | (ARM_PMU_Get_EVCNTR(1) << 16);
+      counters_value[counters_index][counters_step_index] = ARM_PMU_Get_EVCNTR(0) | (ARM_PMU_Get_EVCNTR(1) << 16);
     }
     else
     {
-      counters_value[i] = ARM_PMU_Get_CCNTR();
+      counters_value[counters_index][counters_step_index] = ARM_PMU_Get_CCNTR();
     }
+    counters_step_index++;
   }
+
+  printf("PMU;");
+  for (size_t j = 0; j < counters_step_index; j++)
+  {
+    if (counters_name[j])
+      printf("%s;", counters_name[j]);
+    else
+      printf(";");
+  }
+  printf("\n");
   for (size_t i = 0; i < sizeof(counters) / sizeof(counters[0]); i++)
   {
     const struct event_counter_desc *const event_counter = &counters[i];
-    printf("%s: %lu\n", event_counter->name, counters_value[i]);
+    printf("%s;", event_counter->name);
+    for (size_t j = 0; j < counters_step_index; j++)
+    {
+      printf("%lu;", counters_value[i][j]);
+    }
+    printf("\n");
   }
   printf("\n");
 
