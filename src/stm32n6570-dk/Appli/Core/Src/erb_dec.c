@@ -196,7 +196,7 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
   int Rb = 3 * hs;
   int sequence_lenght = 1;
   /* Gates */
-  static model_data_type_t gates[3][1][256] __attribute__((aligned(16))) __attribute__((section(".dtcm")));
+  static model_data_type_t gates[4][1][256] __attribute__((aligned(16))) __attribute__((section(".dtcm")));
 
   arm_copy_f16((const float16_t *)initial_h, (float16_t *)Y_h, sizeof(*initial_h) / 2);
 
@@ -217,6 +217,10 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
           gates[i][b][h] += B[0][Rb + i * hs + h];
         }
       }
+      for (int h = 0; h < hs; h++)
+      {
+        gates[3][b][h] = B[0][Rb + 2 * hs + h];
+      }
 
       for (int g = 0; g < 3; g++)
       {
@@ -227,6 +231,7 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
       {
         arm_mat_vec_mult_add_f16(hs, hs, R[0][g * hs], Y_h[0][b], gates[g][b]);
       }
+      arm_mat_vec_mult_add_f16(hs, hs, R[0][2 * hs], Y_h[0][b], gates[3][b]);
 
       // z - update gate (0)
       arm_nn_sigmoid_f16((const float16_t *)gates[0][b], (float16_t *)gates[0][b], hs);
@@ -236,12 +241,7 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
 
       for (int h = 0; h < hs; h++)
       {
-        model_data_type_t acc = 0;
-        for (int i = 0; i < hs; i++)
-        {
-          acc += R[0][2 * hs + h][i] * Y_h[0][b][i];
-        }
-        gates[2][b][h] += (acc + B[0][Rb + 2 * hs + h]) * gates[1][b][h];
+        gates[2][b][h] += gates[3][b][h] * gates[1][b][h];
       }
 
       // h - hidden gate (2)
@@ -249,10 +249,9 @@ FUNC_PREFIX void node__emb_gru_GRU(const model_data_type_t X[1][1][256],
 
       for (int h = 0; h < hs; h++)
       {
-        Y_h[0][b][h] =
+        Y[s][0][b][h] = Y_h[0][b][h] =
           (model_data_type_t)((model_data_type_t)((model_data_type_t)(1.0f16 - gates[0][b][h]) * gates[2][b][h]) + (model_data_type_t)(gates[0][b][h] * Y_h[0][b][h]));
       }
-      arm_copy_f16((const float16_t *)Y_h[0][b], (float16_t *)Y[s][0][b], hs);
     }
 
   } /* sequences */
@@ -298,7 +297,7 @@ FUNC_PREFIX void node__emb_gru_GRU_1(const model_data_type_t X[1][1][256],
   int Rb = 3 * hs;
   int sequence_lenght = 1;
   /* Gates */
-  static model_data_type_t gates[3][1][256] __attribute__((aligned(16))) __attribute__((section(".dtcm")));
+  static model_data_type_t gates[4][1][256] __attribute__((aligned(16))) __attribute__((section(".dtcm")));
 
   arm_copy_f16((const float16_t *)initial_h, (float16_t *)Y_h, sizeof(*initial_h) / 2);
 
@@ -319,6 +318,10 @@ FUNC_PREFIX void node__emb_gru_GRU_1(const model_data_type_t X[1][1][256],
           gates[i][b][h] += B[0][Rb + i * hs + h];
         }
       }
+      for (int h = 0; h < hs; h++)
+      {
+        gates[3][b][h] = B[0][Rb + 2 * hs + h];
+      }
 
       for (int g = 0; g < 3; g++)
       {
@@ -329,6 +332,7 @@ FUNC_PREFIX void node__emb_gru_GRU_1(const model_data_type_t X[1][1][256],
       {
         arm_mat_vec_mult_add_f16(hs, hs, R[0][g * hs], Y_h[0][b], gates[g][b]);
       }
+      arm_mat_vec_mult_add_f16(hs, hs, R[0][2 * hs], Y_h[0][b], gates[3][b]);
 
       // z - update gate (0)
       arm_nn_sigmoid_f16((const float16_t *)gates[0][b], (float16_t *)gates[0][b], hs);
@@ -338,12 +342,7 @@ FUNC_PREFIX void node__emb_gru_GRU_1(const model_data_type_t X[1][1][256],
 
       for (int h = 0; h < hs; h++)
       {
-        model_data_type_t acc = 0;
-        for (int i = 0; i < hs; i++)
-        {
-          acc += R[0][2 * hs + h][i] * Y_h[0][b][i];
-        }
-        gates[2][b][h] += (acc + B[0][Rb + 2 * hs + h]) * gates[1][b][h];
+        gates[2][b][h] += gates[3][b][h] * gates[1][b][h];
       }
 
       // h - hidden gate (2)
@@ -351,10 +350,9 @@ FUNC_PREFIX void node__emb_gru_GRU_1(const model_data_type_t X[1][1][256],
 
       for (int h = 0; h < hs; h++)
       {
-        Y_h[0][b][h] =
+        Y[s][0][b][h] = Y_h[0][b][h] =
           (model_data_type_t)((model_data_type_t)((model_data_type_t)(1.0f16 - gates[0][b][h]) * gates[2][b][h]) + (model_data_type_t)(gates[0][b][h] * Y_h[0][b][h]));
       }
-      arm_copy_f16((const float16_t *)Y_h[0][b], (float16_t *)Y[s][0][b], hs);
     }
 
   } /* sequences */
