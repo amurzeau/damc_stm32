@@ -398,7 +398,7 @@ void MPU_Config(void)
   /** Initializes and configures the Region 1 (cached RAM) and the memory to be protected
   */
   MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0x342e0000;
+  MPU_InitStruct.BaseAddress = 0x34000000;
   MPU_InitStruct.LimitAddress = ((((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0) - 1;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
