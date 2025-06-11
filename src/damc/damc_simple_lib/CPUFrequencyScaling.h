@@ -49,11 +49,15 @@ private:
 	OscReadOnlyVariable<int32_t> oscAXIFrequency;
 	OscReadOnlyVariable<int32_t> oscAHBFrequency;
 	OscReadOnlyVariable<int32_t> oscTimerFrequency;
+	OscReadOnlyVariable<int32_t> oscNPUFrequency;
+	OscReadOnlyVariable<int32_t> oscNPUSRAMFrequency;
 
 	OscVariable<int32_t> oscCpuDivider;
 	OscVariable<int32_t> oscAXIDivider;
 	OscVariable<int32_t> oscAHBDivider;
 	OscVariable<int32_t> oscTimerDivider;
+	OscVariable<int32_t> oscNPUDivider;
+	OscVariable<int32_t> oscNPUSRAMDivider;
 #endif
 
 	uint32_t current_ahb_divider;

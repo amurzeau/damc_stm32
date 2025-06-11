@@ -324,7 +324,7 @@ void CPUFrequencyScaling::setRawAHBDivider(uint32_t divider) {
 
 // Max 1Ghz
 void CPUFrequencyScaling::setRawNPUDivider(uint32_t divider) {
-	divider = clampDivider(divider, 1, 256, true);
+	divider = clampDivider(divider, 1, 256, false);
 
 	if(divider == LL_RCC_IC6_GetDivider())
 		return;
@@ -337,7 +337,7 @@ void CPUFrequencyScaling::setRawNPUDivider(uint32_t divider) {
 
 // Max 900Mhz
 void CPUFrequencyScaling::setRawAXISRAM3456Divider(uint32_t divider) {
-	divider = clampDivider(divider, 1, 256, true);
+	divider = clampDivider(divider, 1, 256, false);
 
 	if(divider == LL_RCC_IC11_GetDivider())
 		return;
@@ -413,11 +413,15 @@ CPUFrequencyScaling::CPUFrequencyScaling(OscRoot* oscRoot)
       oscAXIFrequency(this, "axiFreq", HAL_RCC_GetSysClockFreq()),
       oscAHBFrequency(this, "ahbFreq", HAL_RCC_GetHCLKFreq()),
       oscTimerFrequency(this, "timerFreq", HAL_RCC_GetSysClockFreq() / getTimerDivider()),
+      oscNPUFrequency(this, "npuFreq", HAL_RCCEx_GetPLL1CLKFreq() / LL_RCC_IC6_GetDivider()),
+      oscNPUSRAMFrequency(this, "npuSramFreq", HAL_RCCEx_GetPLL1CLKFreq() / LL_RCC_IC11_GetDivider()),
       // Don't persist this variable as we use it also as a readonly variable when "manual" == false
       oscCpuDivider(this, "cpuDivider", LL_RCC_IC1_GetDivider(), false),
       oscAXIDivider(this, "axiDivider", LL_RCC_IC2_GetDivider(), false),
       oscAHBDivider(this, "ahbDivider", getAHBDivider(), false),
       oscTimerDivider(this, "timerDivider", getTimerDivider(), false),
+      oscNPUDivider(this, "npuDivider", LL_RCC_IC6_GetDivider(), false),
+      oscNPUSRAMDivider(this, "npuSramDivider", LL_RCC_IC11_GetDivider(), false),
 #endif
       current_ahb_divider(1),
       recent_ahb_divider_change(false),
@@ -444,10 +448,14 @@ CPUFrequencyScaling::CPUFrequencyScaling(OscRoot* oscRoot)
 	oscAXIDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscAXIDivider, setRawAXIDivider(value)));
 	oscAHBDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscAHBDivider, setRawAHBDivider(value)));
 	oscTimerDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscTimerDivider, setRawTimerDivider(1, value)));
+	oscNPUDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscNPUDivider, setRawNPUDivider(value)));
+	oscNPUSRAMDivider.addChangeCallback(DEFINE_CHANGE_CALLBACK(oscNPUSRAMDivider, setRawAXISRAM3456Divider(value)));
 
 	oscAXIDivider.addCheckCallback(checkSetDividerAllowed);
 	oscAHBDivider.addCheckCallback(checkSetDividerAllowed);
 	oscTimerDivider.addCheckCallback(checkSetDividerAllowed);
+	oscNPUDivider.addCheckCallback(checkSetDividerAllowed);
+	oscNPUSRAMDivider.addCheckCallback(checkSetDividerAllowed);
 #endif
 
 	resetFrequencyToMaxPerformance();
@@ -541,10 +549,14 @@ void CPUFrequencyScaling::onFrequencyChanged(uv_async_t* handle) {
 	thisInstance->oscAXIDivider.setNoCheck(LL_RCC_IC2_GetDivider());
 	thisInstance->oscAHBDivider.setNoCheck(getAHBDivider());
 	thisInstance->oscTimerDivider.setNoCheck(getTimerDivider());
+	thisInstance->oscNPUDivider.setNoCheck(LL_RCC_IC6_GetDivider());
+	thisInstance->oscNPUSRAMDivider.setNoCheck(LL_RCC_IC11_GetDivider());
 
 	thisInstance->oscCpuFrequency.set(SystemCoreClock);
 	thisInstance->oscAXIFrequency.set(HAL_RCC_GetSysClockFreq());
 	thisInstance->oscAHBFrequency.set(HAL_RCC_GetHCLKFreq());
 	thisInstance->oscTimerFrequency.set(HAL_RCC_GetSysClockFreq() / getTimerDivider());
+	thisInstance->oscNPUFrequency.set(HAL_RCCEx_GetPLL1CLKFreq() / LL_RCC_IC6_GetDivider());
+	thisInstance->oscNPUSRAMFrequency.set(HAL_RCCEx_GetPLL1CLKFreq() / LL_RCC_IC11_GetDivider());
 #endif
 }
