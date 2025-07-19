@@ -1,6 +1,5 @@
 {
 	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-	"cmake.configureOnOpen": true,
 	"editor.detectIndentation": false,
 	"editor.insertSpaces": false,
 	"C_Cpp.autoAddFileAssociations": false,
