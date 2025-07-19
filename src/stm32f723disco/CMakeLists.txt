@@ -17,7 +17,8 @@ target_compile_definitions(stm32cube_headers INTERFACE
     USE_STM32F723E_DISCO_REVD
     USE_HAL_DRIVER
     STM32F723xx
-	PLATFORM_HEADER="stm32f723xx.h"
+	PLATFORM_HEADER=\"stm32f723xx.h\"
+	PLATFORM_HAL_HEADER=\"stm32f7xx_hal.h\"
 )
 
 
@@ -26,10 +27,6 @@ file(GLOB_RECURSE SOURCE_LIST
 	Components/*.c Components/*.h Components/*.cpp
 	Core/*.c Core/*.h Core/*.cpp Core/*.s
 	Drivers/*.c Drivers/*.h Drivers/*.cpp
-	USB_DEVICE/*.c USB_DEVICE/*.h USB_DEVICE/*.cpp
-	Middlewares/ST/STM32_USB_Device_Library/Core/*.c
-	Middlewares/ST/STM32_USB_Device_Library/Core/*.h
-	Middlewares/ST/STM32_USB_Device_Library/Core/*.cpp
 )
 
 add_library(stm32cube INTERFACE)
@@ -37,10 +34,7 @@ target_sources(stm32cube INTERFACE ${SOURCE_LIST})
 
 target_include_directories(
     stm32cube INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/USB_DEVICE/App
-    ${CMAKE_CURRENT_LIST_DIR}/USB_DEVICE/Target
     ${CMAKE_CURRENT_LIST_DIR}/BSP
-    ${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc
 )
 
 target_link_libraries(stm32cube INTERFACE stm32cube_headers)

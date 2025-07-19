@@ -20,6 +20,7 @@ target_compile_definitions(stm32cube_headers INTERFACE
     USE_HAL_DRIVER
     STM32N657xx
 	PLATFORM_HEADER=\"stm32n657xx.h\"
+	PLATFORM_HAL_HEADER=\"stm32n6xx_hal.h\"
 )
 
 # FSBL bootloader
@@ -131,11 +132,8 @@ target_sources(stm32cube INTERFACE ${SOURCE_LIST})
 target_include_directories(
     stm32cube INTERFACE
 	${CMAKE_CURRENT_LIST_DIR}/Appli/Core/Inc
-    ${CMAKE_CURRENT_LIST_DIR}/Appli/USB_DEVICE/App
-    ${CMAKE_CURRENT_LIST_DIR}/Appli/USB_DEVICE/Target
     ${CMAKE_CURRENT_LIST_DIR}/BSP
     ${CMAKE_CURRENT_LIST_DIR}/Components/Common
-    ${CMAKE_CURRENT_LIST_DIR}/Appli/Middlewares/ST/STM32_USB_Device_Library/Core/Inc
 	${CMAKE_CURRENT_LIST_DIR}/Secure_nsclib
 )
 

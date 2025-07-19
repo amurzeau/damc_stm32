@@ -36,7 +36,7 @@ target_link_libraries(CMSISDSP PUBLIC stm32cube_headers common_flags)
 
 
 file(GLOB_RECURSE SOURCE_LIST
-	USBClass/*.c USBClass/*.h USBClass/*.cpp
+	USB/*.c USB/*.h USB/*.cpp
 	damc/*.c damc/*.h damc/*.cpp
 	memtester/*.c memtester/*.h memtester/*.cpp
     Fonts/*.c Fonts/*.h Fonts/*.cpp
@@ -50,9 +50,12 @@ target_link_libraries(${TARGET_NAME} PUBLIC common_flags)
 
 target_include_directories(
     ${TARGET_NAME} PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/USBClass/AUDIO/Inc
-    ${CMAKE_CURRENT_LIST_DIR}/USBClass/COMPOSITE/Inc
-    ${CMAKE_CURRENT_LIST_DIR}/USBClass/CDC/Inc
+    ${CMAKE_CURRENT_LIST_DIR}/USB/USB_DEVICE/App
+    ${CMAKE_CURRENT_LIST_DIR}/USB/USB_DEVICE/Target
+    ${CMAKE_CURRENT_LIST_DIR}/USB/stm32-mw-usb-device/Core/Inc
+    ${CMAKE_CURRENT_LIST_DIR}/USB/stm32-mw-usb-device/Class/AUDIO/Inc
+    ${CMAKE_CURRENT_LIST_DIR}/USB/stm32-mw-usb-device/Class/COMPOSITE/Inc
+    ${CMAKE_CURRENT_LIST_DIR}/USB/stm32-mw-usb-device/Class/CDC/Inc
     ${CMAKE_CURRENT_LIST_DIR}/Fonts
     ${CMAKE_CURRENT_LIST_DIR}/damc/deps
     ${CMAKE_CURRENT_LIST_DIR}/damc/deps/libuv_microcontroller
