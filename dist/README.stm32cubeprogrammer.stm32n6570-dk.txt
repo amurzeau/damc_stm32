@@ -8,7 +8,7 @@
    - Put BOOT0 toward the LCD screen
  - Connect to the board in STM32CubeProgrammer
  - On the left, click the second icon "Erasing & Programing"
- - In Download, File path, select the "damc_stm32n6570-dk-flash.bin" file
+ - In Download, File path, select the "damc_stm32n6570-dk-flash.hex" file
  - Click "Start Programm..." to flash the board
 
  - When programming is done, put the BOOT1 switch toward the LCD screen

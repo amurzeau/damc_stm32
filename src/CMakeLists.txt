@@ -109,17 +109,18 @@ if(TARGET ${TARGET_NAME}_bootloader AND STM32_SIGNINGTOOL_CLI)
 	# FSBL at first address
 	# Appli at address 0x10000 (64KB)
 	add_custom_command(
-		OUTPUT ${TARGET_NAME}-flash.bin
+		OUTPUT ${TARGET_NAME}-flash.hex
 		DEPENDS
 			$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin
 			${TARGET_NAME}
 		COMMAND
 			   dd if=$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin of=${TARGET_NAME}-flash.bin status=none
 			&& dd if=${TARGET_NAME}.bin of=${TARGET_NAME}-flash.bin bs=1024 seek=64 conv=notrunc status=none
+			&& ${CMAKE_OBJCOPY} --change-addresses 0x70000000 -Ibinary -Oihex ${TARGET_NAME}-flash.bin ${TARGET_NAME}-flash.hex
 	)
 	add_custom_target(${TARGET_NAME}-nor
 		ALL
-		DEPENDS ${TARGET_NAME}-flash.bin
+		DEPENDS ${TARGET_NAME}-flash.hex
 	)
 
 	install(FILES
@@ -132,7 +133,7 @@ if(TARGET ${TARGET_NAME}_bootloader AND STM32_SIGNINGTOOL_CLI)
 	)
 
 	install(FILES
-		$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}-flash.bin
+		$<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}-flash.hex
 		DESTINATION .
 		COMPONENT stm32cubeprogrammer
 	)

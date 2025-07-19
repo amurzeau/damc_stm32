@@ -43,8 +43,7 @@ To do this, you must do the following:
 
   - Connect to the board in STM32CubeProgrammer
   - On the left, click the second icon `Erasing & Programing`
-  - In Download, File path, select the `damc_stm32n6570-dk-flash.bin` file
-  - Set `Start Address` to `0x70000000`
+  - In Download, File path, select the `damc_stm32n6570-dk-flash.hex` file
   - Click "Start Programm..." to flash the board
   - ![image](images/stm32n6_stm32cubeprogrammer_flash.png)
  
