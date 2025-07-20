@@ -21,9 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <assert.h>
 #include <usb_device.h>
 #include "AudioCApi.h"
 #include "Tracing.h"
+#include "stm32n6xx_hal_pwr_ex.h"
 #include <stm32n6570_discovery.h>
 
 /* USER CODE END Includes */
@@ -364,6 +366,12 @@ static void MX_GPIO_Init(void)
 
 /* MPU Configuration */
 
+extern uint8_t _stext;
+extern uint8_t _etext;
+extern uint8_t _estack;
+extern uint8_t _sromdata;
+extern uint8_t _eromdata;
+extern uint8_t _sdata;
 extern uint8_t __heap_start;
 extern uint8_t __heap_end;
 void MPU_Config(void)
@@ -376,12 +384,38 @@ void MPU_Config(void)
   /* Disables the MPU */
   HAL_MPU_Disable();
 
-  /** Initializes and configures the Region 0 (ROM) and the memory to be protected
+  /** Initializes and configures the Region 0 (STM32 Peripherals) and the memory to be protected
   */
-  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x34000000;
-  MPU_InitStruct.LimitAddress = 0x342dffff;
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.BaseAddress = 0x40000000;
+  MPU_InitStruct.LimitAddress = 0x5FFFFFFF;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_OUTER_SHAREABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region 1 (ARM Peripherals) and the memory to be protected
+  */
+  MPU_InitStruct.Number++;
+  MPU_InitStruct.BaseAddress = 0xE0000000;
+  MPU_InitStruct.LimitAddress = 0xE0043FFF;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER1;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_OUTER_SHAREABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region 2 (ROM text) and the memory to be protected
+  */
+  MPU_InitStruct.Number++;
+  MPU_InitStruct.BaseAddress = (uint32_t)&_stext;
+  MPU_InitStruct.LimitAddress = (uint32_t)&_etext - 1;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RO;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
@@ -390,73 +424,111 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 1 (cached RAM) and the memory to be protected
+  /** Initializes and configures the Region 3 (cached ROM) and the memory to be protected
   */
   MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0x342e0000;
-  MPU_InitStruct.LimitAddress = ((((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0) - 1;
+  MPU_InitStruct.BaseAddress = (uint32_t)&_sromdata;
+  MPU_InitStruct.LimitAddress = ((uint32_t)&_eromdata) - 1;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RO;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region 4 (non-cached RAM) and the memory to be protected
+  */
+  MPU_InitStruct.Number++;
+  MPU_InitStruct.BaseAddress = (uint32_t)&__snoncacheable;
+  MPU_InitStruct.LimitAddress = ((uint32_t)&__enoncacheable) - 1;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
   MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 2 (Peripherals) and the memory to be protected
+  /** Initializes and configures the Region 5 (cached RAM) and the memory to be protected
   */
   MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0x40000000;
-  MPU_InitStruct.LimitAddress = 0x5FFFFFFF;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_OUTER_SHAREABLE;
+  MPU_InitStruct.BaseAddress = (uint32_t)&_sdata;
+  MPU_InitStruct.LimitAddress = ((((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0) - 1;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 3 (ARM Peripherals) and the memory to be protected
-  */
-  MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0xE0000000;
-  MPU_InitStruct.LimitAddress = 0xE0043FFF;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER1;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 4 (LCD RAM non cached) and the memory to be protected
-  */
-  //MPU_InitStruct.Number++;
-  //MPU_InitStruct.BaseAddress = 0x34000000;
-  //MPU_InitStruct.LimitAddress = 0x3417FFFF;
-  //MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 5 (Heap RAM non cached) and the memory to be protected
+  /** Initializes and configures the Region 6 (Heap RAM non cached) and the memory to be protected
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = (((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0;
   MPU_InitStruct.LimitAddress = (((uint32_t)&__heap_end) & 0xFFFFFFE0) - 1;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 6 (Stack RAM cached) and the memory to be protected
+  /** Initializes and configures the Region 7 (Stack RAM cached) and the memory to be protected
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = ((uint32_t)&__heap_end) & 0xFFFFFFE0;
-  MPU_InitStruct.LimitAddress = 0x343bffff;
+  MPU_InitStruct.LimitAddress = (uint32_t)&_estack - 1;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 7 (DTCM RAM not cached) and the memory to be protected
+  /** Initializes and configures the Region 8 (DTCM RAM not cached) and the memory to be protected
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = 0x2000000;
   MPU_InitStruct.LimitAddress = 0x2001ffff;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
+  /** Initializes and configures the Region 9 (XSPI2 NOR Flash) and the memory to be protected
+  */
+  //MPU_InitStruct.Number++;
+  //MPU_InitStruct.BaseAddress = 0x70000000;
+  //MPU_InitStruct.LimitAddress = 0x78000000 - 1;
+  //MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
+  //MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RO;
+  //MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  //MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  //MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+
+  //HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region 10 (XSPI1 NOR Flash) and the memory to be protected
+  */
+  //MPU_InitStruct.Number++;
+  //MPU_InitStruct.BaseAddress = 0x90000000;
+  //MPU_InitStruct.LimitAddress = 0x92000000 - 1;
+  //MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
+  //MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
+  //MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  //MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
+  //MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+
+  //HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  assert(MPU_InitStruct.Number < 16);
 
   /** Initializes and configures the Attribute 0 and the memory to be protected
   */

@@ -72,6 +72,8 @@ SECTIONS
   .text :
   {
     . = ALIGN(4);
+    _stext = .;        /* define a global symbols at start of code */
+
     *(.text)           /* .text sections (code) */
     *(.text*)          /* .text* sections (code) */
     *(.glue_7)         /* glue arm to thumb code */
@@ -91,6 +93,8 @@ SECTIONS
   .rodata :
   {
     . = ALIGN(4);
+	_sromdata = .; /* start of ROM data */
+
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
@@ -157,6 +161,14 @@ SECTIONS
 
   } >RAM AT> ROM
 
+  .gnu.sgstubs :
+  {
+    . = ALIGN(4);
+    *(.gnu.sgstubs*)   /* Secure Gateway stubs */
+    . = ALIGN(4);
+	_eromdata = .; /* end of ROM data */
+  } >ROM
+
   .noncacheable (NOLOAD) :
   {
     . = ALIGN(8);
@@ -165,14 +177,6 @@ SECTIONS
     . = ALIGN(8);
     __enoncacheable = .;  /* create symbol for end of section */
   } > RAM
-
-
-  .gnu.sgstubs :
-  {
-    . = ALIGN(4);
-    *(.gnu.sgstubs*)   /* Secure Gateway stubs */
-    . = ALIGN(4);
-  } >ROM
 
   /* Metadata used for the image header */
   _applicationsize = . - ORIGIN(ROM);
