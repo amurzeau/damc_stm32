@@ -9,21 +9,20 @@
 
 #include "BiquadFilter.h"
 #include "TinyDenoiserModel/model.h"
-#include "uv.h"
+#include <ThreadInISR.h>
+
+DEFINE_ThreadInISR(tiny_denoiser_thread, TinyDenoiserFilter*, ADF1_FLT0, 0x0f);
 
 // Model from
 // https://github.com/GreenWaves-Technologies/tiny_denoiser_v2
 // https://arxiv.org/pdf/2210.07692
 
 TinyDenoiserFilter::TinyDenoiserFilter(OscContainer* parent)
-    : OscContainer(parent, "tinyDenoiserFilter", 9), enable(this, "enable", false), firstRun(true) {
+    : OscContainer(parent, "tinyDenoiserFilter", 9), enable(this, "enableIndex", 0), firstRun(true) {
 	tinydenoiser_model_init();
 
 	resamplingFilterInput.computeFilter(true, FilterType::LowPass, 8000, 48000, 0, 0.7071);
 	resamplingFilterOutput.computeFilter(true, FilterType::LowPass, 8000, 48000, 0, 0.7071);
-
-	uv_async_init(uv_default_loop(), &asyncRunModel, &TinyDenoiserFilter::modelRunStatic);
-	asyncRunModel.data = this;
 
 	sampleAddedToWindowSinceLastModelRun = 0;
 	sampleWindowInput.fill(0.0f);
@@ -92,15 +91,14 @@ void TinyDenoiserFilter::processSamples(float** samples, size_t count) {
 
 			sampleAddedToWindowSinceLastModelRun -= WINDOW_PERIOD;
 
-			uv_async_send(&asyncRunModel);
+			tiny_denoiser_thread.triggerRun(&TinyDenoiserFilter::modelRunStatic, this);
 		}
 	} else {
 		firstRun = true;
 	}
 }
 
-void TinyDenoiserFilter::modelRunStatic(uv_async_t* handle) {
-	TinyDenoiserFilter* thisInstance = (TinyDenoiserFilter*) handle->data;
+void TinyDenoiserFilter::modelRunStatic(TinyDenoiserFilter* thisInstance) {
 	thisInstance->modelRun();
 }
 

@@ -16,7 +16,7 @@ public:
 	void processSamples(float** samples, size_t count);
 
 protected:
-	static void modelRunStatic(uv_async_t* handle);
+	static void modelRunStatic(TinyDenoiserFilter* thisInstance);
 	void modelRun();
 
 private:
@@ -33,11 +33,9 @@ private:
 	BiquadFilter resamplingFilterInput;
 	BiquadFilter resamplingFilterOutput;
 
-	OscVariable<bool> enable;
+	OscVariable<int32_t> enable;
 
 	bool firstRun;
-
-	uv_async_t asyncRunModel;
 };
 
 #else
