@@ -70,6 +70,7 @@ target_compile_options(
 	-Wall
 	-Wdouble-promotion
 	-Wno-psabi
+	-Werror=return-type
 )
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	target_compile_options(
