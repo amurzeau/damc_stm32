@@ -163,7 +163,7 @@ extern uint32_t __vector_table;
 extern void *__Vectors;
 #define INTVECT_START ((uint32_t)&__Vectors)
 #elif defined(__GNUC__)
-extern void *g_pfnVectors;
+extern uint32_t g_pfnVectors[];
 #define INTVECT_START ((uint32_t)&g_pfnVectors)
 #endif
 

@@ -34,6 +34,7 @@ set(CMAKE_SIZE                      ${TOOLCHAIN_DIRECTORY}/llvm-size${TOOLCHAIN_
 set(CMAKE_AR                        ${TOOLCHAIN_DIRECTORY}/llvm-ar${TOOLCHAIN_SUFFIX})
 set(CMAKE_RANLIB                    ${TOOLCHAIN_DIRECTORY}/llvm-ranlib${TOOLCHAIN_SUFFIX})
 set(CMAKE_NM                        ${TOOLCHAIN_DIRECTORY}/llvm-nm${TOOLCHAIN_SUFFIX})
+set(CMAKE_STRIP                     ${TOOLCHAIN_DIRECTORY}/llvm-strip${TOOLCHAIN_SUFFIX})
 
 set(CMAKE_EXECUTABLE_SUFFIX_C       ".elf")
 set(CMAKE_EXECUTABLE_SUFFIX_CXX     ".elf")

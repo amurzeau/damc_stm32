@@ -49,7 +49,7 @@
 #if defined(__ICCARM__)
 #define KeepInCompilation __root
 #else
-#define KeepInCompilation __attribute__((used))
+#define KeepInCompilation __attribute__((used)) __attribute__((noinline))
 #endif /* __ICCARM__ */
 
 /**
