@@ -2152,6 +2152,18 @@ SFDP_StatusTypeDef sfpd_enter_octal_mode(EXTMEM_DRIVER_NOR_SFDP_ObjectTypeDef *O
        retr = EXTMEM_SFDP_ERROR_DRIVER;
        goto error;
      }
+
+     /* wait for write enable bit set in status register */
+     if (HAL_OK == SAL_XSPI_CheckStatusRegister(&Object->sfpd_private.SALObject,
+                                                Object->sfpd_private.DriverInfo.ReadWELCommand,
+                                                Object->sfpd_private.DriverInfo.WELAddress,
+                                                (!Object->sfpd_private.DriverInfo.WELBusyPolarity) << Object->sfpd_private.DriverInfo.WELPosition,
+                                                1u << Object->sfpd_private.DriverInfo.WELPosition,
+                                                100u))
+     {
+       retr = EXTMEM_SFDP_ERROR_DRIVER;
+       goto error;
+     }
   }
 
   /* D3-D4 command */
