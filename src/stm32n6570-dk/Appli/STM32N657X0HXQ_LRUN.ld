@@ -71,7 +71,7 @@ SECTIONS
   /* The program code and other data into "RAM" Ram type memory */
   .text :
   {
-    . = ALIGN(4);
+    . = ALIGN(32);
     _stext = .;        /* define a global symbols at start of code */
 
     *(.text)           /* .text sections (code) */
@@ -85,14 +85,14 @@ SECTIONS
     KEEP (*(.init))
     KEEP (*(.fini))
 
-    . = ALIGN(4);
+    . = ALIGN(32);
     _etext = .;        /* define a global symbols at end of code */
   } >ROM
 
   /* Constant data into "RAM" Ram type memory */
   .rodata :
   {
-    . = ALIGN(4);
+    . = ALIGN(32);
 	_sromdata = .; /* start of ROM data */
 
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
@@ -151,12 +151,12 @@ SECTIONS
   /* Initialized data sections into "RAM" Ram type memory */
   .data :
   {
-    . = ALIGN(4);
+    . = ALIGN(32);
     _sdata = .;        /* create a global symbol at data start */
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
 
-    . = ALIGN(4);
+    . = ALIGN(32);
     _edata = .;        /* define a global symbol at data end */
 
   } >RAM AT> ROM
@@ -165,27 +165,18 @@ SECTIONS
   {
     . = ALIGN(4);
     *(.gnu.sgstubs*)   /* Secure Gateway stubs */
-    . = ALIGN(4);
+    . = ALIGN(32);
 	_eromdata = .; /* end of ROM data */
   } >ROM
-
-  .noncacheable (NOLOAD) :
-  {
-    . = ALIGN(8);
-    __snoncacheable = .;/* create symbol for start of section */
-    KEEP(*(.noncacheable))
-    . = ALIGN(8);
-    __enoncacheable = .;  /* create symbol for end of section */
-  } > RAM
 
   /* Metadata used for the image header */
   _applicationsize = . - ORIGIN(ROM);
   _applicationstart = ORIGIN(ROM);
 
   /* Uninitialized data section into "RAM" Ram type memory */
-  . = ALIGN(4);
   .bss :
   {
+    . = ALIGN(32);
     /* This is used by the startup in order to initialize the .bss section */
     _sbss = .;         /* define a global symbol at bss start */
     __bss_start__ = _sbss;
@@ -193,7 +184,7 @@ SECTIONS
     *(.bss*)
     *(COMMON)
 
-    . = ALIGN(4);
+    . = ALIGN(32);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM
@@ -211,7 +202,7 @@ SECTIONS
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
   ._user_heap_stack (NOLOAD) :
   {
-    . = ALIGN(8);
+    . = ALIGN(32);
 	__heap_start = .; /* start of heap */
     PROVIDE ( end = . );
     PROVIDE ( _end = . );

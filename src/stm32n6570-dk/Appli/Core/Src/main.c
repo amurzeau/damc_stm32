@@ -384,6 +384,20 @@ void MPU_Config(void)
   /* Disables the MPU */
   HAL_MPU_Disable();
 
+  // Ensure addresses are 32 bytes aligned as required for MPU addresses
+  assert((((uint32_t)&_stext) & 31) == 0);
+  assert((((uint32_t)&_etext) & 31) == 0);
+  assert((((uint32_t)&_estack) & 31) == 0);
+  assert((((uint32_t)&_sromdata) & 31) == 0);
+  assert((((uint32_t)&_eromdata) & 31) == 0);
+  assert((((uint32_t)&_sdata) & 31) == 0);
+  assert((((uint32_t)&__heap_start) & 31) == 0);
+  assert((((uint32_t)&__heap_end) & 31) == 0);
+
+  // Ensure no overlap, else MemManage will be triggered on overlapped regions access
+  assert((uint32_t)&_etext <= (uint32_t)&_sromdata);
+  assert((uint32_t)&_eromdata <= (uint32_t)&_sdata);
+
   /** Initializes and configures the Region 0 (STM32 Peripherals) and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
@@ -437,20 +451,7 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 4 (non-cached RAM) and the memory to be protected
-  */
-  MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = (uint32_t)&__snoncacheable;
-  MPU_InitStruct.LimitAddress = ((uint32_t)&__enoncacheable) - 1;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
-  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  /** Initializes and configures the Region 5 (cached RAM) and the memory to be protected
+  /** Initializes and configures the Region 4 (cached RAM) and the memory to be protected
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = (uint32_t)&_sdata;
@@ -463,7 +464,7 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 6 (Heap RAM non cached) and the memory to be protected
+  /** Initializes and configures the Region 5 (Heap RAM non cached) and the memory to be protected
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = (((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0;
@@ -476,7 +477,7 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 7 (Stack RAM cached) and the memory to be protected
+  /** Initializes and configures the Region 6 (Stack RAM cached) and the memory to be protected
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = ((uint32_t)&__heap_end) & 0xFFFFFFE0;
@@ -489,7 +490,7 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 8 (DTCM RAM not cached) and the memory to be protected
+  /** Initializes and configures the Region 7 (DTCM RAM not cached) and the memory to be protected
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = 0x2000000;
@@ -502,7 +503,7 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 9 (XSPI2 NOR Flash) and the memory to be protected
+  /** Initializes and configures the Region 8 (NPU RAM, cached) and the memory to be protected
   */
   //MPU_InitStruct.Number++;
   //MPU_InitStruct.BaseAddress = 0x70000000;
@@ -515,7 +516,7 @@ void MPU_Config(void)
 
   //HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 10 (XSPI1 NOR Flash) and the memory to be protected
+  /** Initializes and configures the Region 9 (XSPI1 NOR Flash) and the memory to be protected
   */
   //MPU_InitStruct.Number++;
   //MPU_InitStruct.BaseAddress = 0x90000000;
@@ -529,6 +530,22 @@ void MPU_Config(void)
   //HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
   assert(MPU_InitStruct.Number < 16);
+
+  // Clear remaining regions
+  MPU_InitStruct.Number++;
+  MPU_InitStruct.Enable = MPU_REGION_DISABLE;
+  MPU_InitStruct.BaseAddress = 0;
+  MPU_InitStruct.LimitAddress = 0;
+  MPU_InitStruct.AttributesIndex = 0;
+  MPU_InitStruct.AccessPermission = 0;
+  MPU_InitStruct.DisableExec = 0;
+  MPU_InitStruct.DisablePrivExec = 0;
+  MPU_InitStruct.IsShareable = 0;
+
+  for (; MPU_InitStruct.Number < 16; MPU_InitStruct.Number++)
+  {
+    HAL_MPU_ConfigRegion(&MPU_InitStruct);
+  }
 
   /** Initializes and configures the Attribute 0 and the memory to be protected
   */
@@ -557,6 +574,15 @@ void MPU_Config(void)
   MPU_AttributesInit.Attributes = INNER_OUTER(MPU_WRITE_BACK | MPU_NON_TRANSIENT | MPU_RW_ALLOCATE);
 
   HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
+
+  // Clear remaining attributes
+  MPU_AttributesInit.Number++;
+  MPU_AttributesInit.Attributes = 0;
+  for (; MPU_AttributesInit.Number < 8; MPU_AttributesInit.Number++)
+  {
+    HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
+  }
+
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_HARDFAULT_NMI);
 
