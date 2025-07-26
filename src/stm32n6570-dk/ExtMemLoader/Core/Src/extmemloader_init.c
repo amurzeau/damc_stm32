@@ -26,6 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stm32n6570_discovery.h>
 
 /* USER CODE END Includes */
 
@@ -101,6 +102,9 @@ uint32_t extmemloader_Init()
   HAL_MPU_Disable();
 
   /* USER CODE BEGIN Init */
+
+  // Enable SMPS overdrive mode for higher CPU frequency
+  BSP_SMPS_Init(SMPS_VOLTAGE_OVERDRIVE);
 
   /* USER CODE END Init */
 

@@ -33,6 +33,31 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>BSP</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>BSP/stm32n6570_discovery.c</name>
+			<type>1</type>
+			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery.c</location>
+		</link>
+		<link>
+			<name>BSP/stm32n6570_discovery.h</name>
+			<type>1</type>
+			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery.h</location>
+		</link>
+		<link>
+			<name>BSP/stm32n6570_discovery_conf.h</name>
+			<type>1</type>
+			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery_conf.h</location>
+		</link>
+		<link>
+			<name>BSP/stm32n6570_discovery_errno.h</name>
+			<type>1</type>
+			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery_errno.h</location>
+		</link>
+		<link>
 			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal.c</locationURI>

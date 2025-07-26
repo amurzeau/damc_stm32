@@ -129,6 +129,11 @@ file(GLOB_RECURSE EXTMEMLOADER_SOURCE_LIST
 	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal_xspi.*
 	Drivers/STM32N6xx_HAL_Driver/*/stm32n6xx_hal.*
 
+	BSP/stm32n6570_discovery.c
+	BSP/stm32n6570_discovery.h
+  BSP/stm32n6570_discovery_conf.h
+  BSP/stm32n6570_discovery_errno.h
+
 	Middlewares/ST/STM32_ExtMem_Manager/*.c
 	Middlewares/ST/STM32_ExtMem_Manager/*.h
 	Middlewares/ST/STM32_ExtMem_Manager/*.cpp
@@ -173,6 +178,7 @@ endif()
 target_include_directories(
 	${TARGET_NAME}_ExtMemLoader PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/ExtMemLoader/Core/Inc
+	${CMAKE_CURRENT_LIST_DIR}/BSP
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Loader/core
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Loader/STM32Cube
 	${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/STM32_ExtMem_Manager
