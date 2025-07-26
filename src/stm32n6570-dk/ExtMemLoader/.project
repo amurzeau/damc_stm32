@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>stm32n6570-dk_FSBL</name>
+	<name>stm32n6570-dk_ExtMemLoader</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -25,72 +25,13 @@
 		<nature>com.st.stm32cube.ide.mcu.MCUCubeProjectNature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUAdvancedStructureProjectNature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUSecureProjectNature</nature>
-		<nature>com.st.stm32cube.ide.mcu.MCUFSBLProjectNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUExtMemLoaderProjectNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUMultiLinkerEnabledProjectNature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUSingleCpuProjectNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
 	<linkedResources>
-		<link>
-			<name>BSP</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>Components</name>
-			<type>2</type>
-			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>memtester</name>
-			<type>2</type>
-			<locationURI>$%7BPARENT-2-PROJECT_LOC%7D/memtester</locationURI>
-		</link>
-		<link>
-			<name>BSP/stm32n6570_discovery.c</name>
-			<type>1</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery.c</location>
-		</link>
-		<link>
-			<name>BSP/stm32n6570_discovery.h</name>
-			<type>1</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery.h</location>
-		</link>
-		<link>
-			<name>BSP/stm32n6570_discovery_conf.h</name>
-			<type>1</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery_conf.h</location>
-		</link>
-		<link>
-			<name>BSP/stm32n6570_discovery_errno.h</name>
-			<type>1</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery_errno.h</location>
-		</link>
-		<link>
-			<name>BSP/stm32n6570_discovery_xspi.c</name>
-			<type>1</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery_xspi.c</location>
-		</link>
-		<link>
-			<name>BSP/stm32n6570_discovery_xspi.h</name>
-			<type>1</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_discovery_xspi.h</location>
-		</link>
-		<link>
-			<name>BSP/stm32n6570_errno.h</name>
-			<type>1</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/BSP/stm32n6570_errno.h</location>
-		</link>
-		<link>
-			<name>Components/aps256xx</name>
-			<type>2</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/Components/aps256xx</location>
-		</link>
-		<link>
-			<name>Components/mx66uw1g45g</name>
-			<type>2</type>
-			<location>/media/doc/USB5/Projets_C/C/Audio/wavePlayer2/stm32/damc_stm32f723disco/src/stm32n6570-dk/Components/mx66uw1g45g</location>
-		</link>
 		<link>
 			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal.c</name>
 			<type>1</type>
@@ -142,24 +83,39 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_rcc_ex.c</locationURI>
 		</link>
 		<link>
-			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_uart.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_uart.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_uart_ex.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_uart_ex.c</locationURI>
-		</link>
-		<link>
 			<name>Drivers/STM32N6xx_HAL_Driver/stm32n6xx_hal_xspi.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32N6xx_HAL_Driver/Src/stm32n6xx_hal_xspi.c</locationURI>
 		</link>
 		<link>
-			<name>Middlewares/ST/STM32_ExtMem_Manager/stm32_boot_lrun.c</name>
+			<name>Middlewares/ST/STM32_ExtMem_Loader/FlashDev.c</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Manager/boot/stm32_boot_lrun.c</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Loader/MDK-ARM/FlashDev.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/ST/STM32_ExtMem_Loader/FlashPrg.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Loader/MDK-ARM/FlashPrg.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/ST/STM32_ExtMem_Loader/memory_wrapper.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Loader/core/memory_wrapper.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/ST/STM32_ExtMem_Loader/stm32_device_info.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Loader/STM32Cube/stm32_device_info.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/ST/STM32_ExtMem_Loader/stm32_loader_api.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Loader/STM32Cube/stm32_loader_api.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/ST/STM32_ExtMem_Loader/systick_management.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Loader/core/systick_management.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/ST/STM32_ExtMem_Manager/stm32_extmem.c</name>

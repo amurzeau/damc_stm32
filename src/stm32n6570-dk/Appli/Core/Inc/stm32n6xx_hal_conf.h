@@ -65,7 +65,7 @@ extern "C" {
 /*#define HAL_PKA_MODULE_ENABLED   */
 /*#define HAL_PSSI_MODULE_ENABLED   */
 /*#define HAL_RAMCFG_MODULE_ENABLED   */
-/*#define HAL_RIF_MODULE_ENABLED   */
+#define HAL_RIF_MODULE_ENABLED
 /*#define HAL_RNG_MODULE_ENABLED   */
 /*#define HAL_RTC_MODULE_ENABLED   */
 #define HAL_SAI_MODULE_ENABLED
@@ -81,7 +81,7 @@ extern "C" {
 /*#define HAL_USART_MODULE_ENABLED   */
 /*#define HAL_WWDG_MODULE_ENABLED   */
 #define HAL_XSPI_MODULE_ENABLED
-/*#define HAL_CACHEAXI_MODULE_ENABLED   */
+#define HAL_CACHEAXI_MODULE_ENABLED
 /*#define HAL_MDIOS_MODULE_ENABLED   */
 /*#define HAL_GPU2D_MODULE_ENABLED   */
 #define HAL_GPIO_MODULE_ENABLED
@@ -150,7 +150,7 @@ extern "C" {
   * @brief This is the HAL system configuration section
   */
 #define  VDD_VALUE                  3300UL /*!< Value of VDD in mv */
-#define TICK_INT_PRIORITY           14U    /*!< tick interrupt priority (lowest by default) */
+#define  TICK_INT_PRIORITY          14U  /*!< tick interrupt priority */
 #define  USE_RTOS                   0U
 
 /* ########################## Assert Selection ############################## */

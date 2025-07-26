@@ -49,6 +49,9 @@
 									<listOptionValue builtIn="false" value="../../Drivers/STM32N6xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../../Drivers/CMSIS/Device/ST/STM32N6xx/Include"/>
 									<listOptionValue builtIn="false" value="../../Drivers/STM32N6xx_HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="../../BSP"/>
+									<listOptionValue builtIn="false" value="../../Components/Common"/>
+									<listOptionValue builtIn="false" value="../../../memtester"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_ExtMem_Manager"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_ExtMem_Manager/boot"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_ExtMem_Manager/sal"/>
@@ -83,8 +86,12 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="BSP"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Components"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="memtester"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -134,6 +141,9 @@
 									<listOptionValue builtIn="false" value="../../Drivers/STM32N6xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../../Drivers/CMSIS/Device/ST/STM32N6xx/Include"/>
 									<listOptionValue builtIn="false" value="../../Drivers/STM32N6xx_HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="../../BSP"/>
+									<listOptionValue builtIn="false" value="../../Components/Common"/>
+									<listOptionValue builtIn="false" value="../../../memtester"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_ExtMem_Manager"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_ExtMem_Manager/boot"/>
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_ExtMem_Manager/sal"/>
@@ -157,7 +167,7 @@
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.otherflags.1565313887" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.otherflags" valueType="stringList">
 									<listOptionValue builtIn="false" value="-flto"/>
 								</option>
-								<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.generate.secure.lib.228430507" name="Generate secure gateways (-Wl,--cmse-implib -Wl,--out-implib=)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.generate.secure.lib" value="" valueType="string"/>
+								<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.generate.secure.lib.228430507" name="Generate secure gateways (-Wl,--cmse-implib -Wl,--out-implib=)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.generate.secure.lib" value="secure_nsclib.o" valueType="string"/>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.input.1512693377" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -175,8 +185,12 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="BSP"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Components"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="memtester"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

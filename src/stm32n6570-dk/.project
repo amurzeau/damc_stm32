@@ -15,6 +15,7 @@
 		<nature>com.st.stm32cube.ide.mcu.MCUFsblEnabledProjectNature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUSingleCpuProjectNature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUAppliPythonEnabledProjectNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUExtMemLoaderEnabledProjectNature</nature>
 	</natures>
 	<linkedResources>
 		<link>
@@ -33,9 +34,9 @@
 			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/Fonts</locationURI>
 		</link>
 		<link>
-			<name>src/USBClass</name>
+			<name>src/USB</name>
 			<type>2</type>
-			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/USBClass</locationURI>
+			<locationURI>$%7BPARENT-1-PROJECT_LOC%7D/USB</locationURI>
 		</link>
 		<link>
 			<name>src/cmake</name>
