@@ -82,6 +82,8 @@ if(STM32_SIGNINGTOOL_CLI)
 			--header-version 2.3
 			--dump-header $<TARGET_FILE_DIR:${TARGET_NAME}>/${TARGET_NAME}_bootloader-trusted.bin
 	)
+else()
+	message(WARNING "STM32_SigningTool_CLI not found, FSBL won't be signed")
 endif()
 
 target_include_directories(
