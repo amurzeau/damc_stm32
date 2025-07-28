@@ -1,8 +1,8 @@
 #pragma once
 
 #include "AudioCApi.h"
-#include <atomic>
 #include PLATFORM_HEADER
+#include <CircularQueue.h>
 #include <TimeMeasure.h>
 
 #define DEFINE_ThreadInISR(name, arg_type, irq_name, priority) \
@@ -18,16 +18,17 @@ public:
 	ThreadInISR(IRQn_Type irqn, int priority);
 
 	bool triggerRun(ThreadFunction threadFunction, ArgType arg);
-	bool getIsPending() { return isPending; }
 
 	void callFromISR();
 
 private:
-	ThreadFunction threadFunction = nullptr;
-	ArgType arg;
+	struct PendingExecution {
+		ThreadFunction threadFunction;
+		ArgType arg;
+	};
+	CircularQueue<PendingExecution, 16> pendingExecutions;
 
-	IRQn_Type irqn;
-	std::atomic_bool isPending = false;
+	const IRQn_Type irqn;
 };
 
 template<class ArgType> ThreadInISR<ArgType>::ThreadInISR(IRQn_Type irqn, int priority) : irqn(irqn) {
@@ -37,13 +38,9 @@ template<class ArgType> ThreadInISR<ArgType>::ThreadInISR(IRQn_Type irqn, int pr
 }
 
 template<class ArgType> bool ThreadInISR<ArgType>::triggerRun(ThreadFunction threadFunction, ArgType arg) {
-	if(isPending)
+	if(pendingExecutions.write(PendingExecution{.threadFunction = threadFunction, .arg = arg}) == 0)
 		return false;
 
-	this->threadFunction = threadFunction;
-	this->arg = arg;
-
-	isPending = true;
 	NVIC_SetPendingIRQ(irqn);
 
 	return true;
@@ -51,9 +48,12 @@ template<class ArgType> bool ThreadInISR<ArgType>::triggerRun(ThreadFunction thr
 
 template<class ArgType> void ThreadInISR<ArgType>::callFromISR() {
 	TimeMeasure::timeMeasure[TMI_OtherIRQ].beginMeasure();
-	if(threadFunction != nullptr)
-		threadFunction(arg);
 
-	isPending = false;
+	PendingExecution pendingExecution;
+
+	if(pendingExecutions.read(&pendingExecution) > 0) {
+		pendingExecution.threadFunction(pendingExecution.arg);
+	}
+
 	TimeMeasure::timeMeasure[TMI_OtherIRQ].endMeasure();
 }
