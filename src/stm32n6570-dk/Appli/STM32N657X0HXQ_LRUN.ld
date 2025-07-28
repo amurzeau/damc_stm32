@@ -57,7 +57,7 @@ SECTIONS
 {
   .image_header :
   {
-  	KEEP(*(.image_header))
+    KEEP(*(.image_header))
   } >ROM
 
   /* The startup code into "RAM" Ram type memory */
@@ -93,7 +93,7 @@ SECTIONS
   .rodata :
   {
     . = ALIGN(32);
-	_sromdata = .; /* start of ROM data */
+    _sromdata = .; /* start of ROM data */
 
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
@@ -166,7 +166,7 @@ SECTIONS
     . = ALIGN(4);
     *(.gnu.sgstubs*)   /* Secure Gateway stubs */
     . = ALIGN(32);
-	_eromdata = .; /* end of ROM data */
+    _eromdata = .; /* end of ROM data */
   } >ROM
 
   /* Metadata used for the image header */
@@ -203,7 +203,7 @@ SECTIONS
   ._user_heap_stack (NOLOAD) :
   {
     . = ALIGN(32);
-	__heap_start = .; /* start of heap */
+    __heap_start = .; /* start of heap */
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;
