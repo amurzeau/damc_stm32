@@ -83,12 +83,18 @@ void Error_Handler(void);
 #define LCD_B4_GPIO_Port GPIOH
 #define LCD_B5_Pin GPIO_PIN_6
 #define LCD_B5_GPIO_Port GPIOH
+#define STMOD_INT_Pin GPIO_PIN_11
+#define STMOD_INT_GPIO_Port GPIOC
 #define LCD_R2_Pin GPIO_PIN_15
 #define LCD_R2_GPIO_Port GPIOD
 #define I2C2_SDA_Pin GPIO_PIN_4
 #define I2C2_SDA_GPIO_Port GPIOD
 #define LCD_HSYNC_Pin GPIO_PIN_14
 #define LCD_HSYNC_GPIO_Port GPIOB
+#define STMOD_ADC_Pin GPIO_PIN_9
+#define STMOD_ADC_GPIO_Port GPIOC
+#define STMOD_PWM_Pin GPIO_PIN_7
+#define STMOD_PWM_GPIO_Port GPIOC
 #define EN_MODULE_Pin GPIO_PIN_2
 #define EN_MODULE_GPIO_Port GPIOD
 #define I2C2_SCL_Pin GPIO_PIN_14
@@ -127,6 +133,8 @@ void Error_Handler(void);
 #define User_GPIO_Port GPIOC
 #define LCD_R4_Pin GPIO_PIN_4
 #define LCD_R4_GPIO_Port GPIOH
+#define STMOD_RST_Pin GPIO_PIN_3
+#define STMOD_RST_GPIO_Port GPIOB
 #define LCD_NRST_Pin GPIO_PIN_1
 #define LCD_NRST_GPIO_Port GPIOE
 #define PWR_SD_EN_Pin GPIO_PIN_7

@@ -229,8 +229,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOQ_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOP_CLK_ENABLE();
   __HAL_RCC_GPIOO_CLK_ENABLE();
@@ -243,10 +243,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOQ, LCD_BL_CTRL_Pin|GPIO_PIN_3|PWR_SD_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, STMOD_INT_Pin|STMOD_ADC_Pin|STMOD_PWM_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(STMOD_IO1_GPIO_Port, STMOD_IO1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, PWR_USB2_EN_Pin|STMOD_IO3_Pin|AUDIO_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, PWR_USB2_EN_Pin|STMOD_IO3_Pin|STMOD_RST_Pin|AUDIO_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LCD_NRST_GPIO_Port, LCD_NRST_Pin, GPIO_PIN_RESET);
@@ -276,6 +279,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : STMOD_INT_Pin STMOD_ADC_Pin STMOD_PWM_Pin */
+  GPIO_InitStruct.Pin = STMOD_INT_Pin|STMOD_ADC_Pin|STMOD_PWM_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pin : STMOD_IO1_Pin */
   GPIO_InitStruct.Pin = STMOD_IO1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -297,8 +307,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(NRST_CAM_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PWR_USB2_EN_Pin STMOD_IO3_Pin AUDIO_RST_Pin */
-  GPIO_InitStruct.Pin = PWR_USB2_EN_Pin|STMOD_IO3_Pin|AUDIO_RST_Pin;
+  /*Configure GPIO pins : PWR_USB2_EN_Pin STMOD_IO3_Pin STMOD_RST_Pin AUDIO_RST_Pin */
+  GPIO_InitStruct.Pin = PWR_USB2_EN_Pin|STMOD_IO3_Pin|STMOD_RST_Pin|AUDIO_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
