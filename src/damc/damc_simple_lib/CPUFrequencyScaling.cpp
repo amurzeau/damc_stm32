@@ -515,7 +515,7 @@ void CPUFrequencyScaling::updateCpuUsage() {
 
 	uint32_t current_needed_cpu_usage_room = CPU_USAGE_MARGIN_AT_MAX_FREQUENCY * current_ahb_divider;
 
-	if(main_loop_task_duration_us > 2000) {
+	if(main_loop_task_duration_us > 10000) {
 		// If main loop current task is running so far for more than 10ms, increase CPU frequency to max
 		// to speed it up.
 		adjustCpuFreq(CpuFreqAdjustement::IncreaseSpeed);
