@@ -1,4 +1,5 @@
 #include "TimeMeasure.h"
+#include "AudioCApi.h"
 #include <main.h>
 #include <string.h>
 
@@ -108,18 +109,18 @@ bool TimeMeasure::updateMeasureAndStop(uint32_t current_time) {
 	return true;
 }
 
-void TimeMeasure::on1msElapsed() {
-	for(size_t i = 0; i < TMI_NUMBER; i++) {
-		timeMeasure[i].endAudioLoop();
-	}
-}
+void TimeMeasure::endOfProcessingLoop(uint32_t loopDurationUs) {
+	uint32_t time;
 
-void TimeMeasure::endAudioLoop() {
 	__disable_irq();
-	if(time_sum_per_loop > time_max)
-		time_max = time_sum_per_loop;
+	time = time_sum_per_loop;
 	time_sum_per_loop = 0;
 	__enable_irq();
+
+	time = time * 1000 / loopDurationUs;
+
+	if(time > time_max)
+		time_max = time;
 }
 
 uint32_t TimeMeasure::getCurrent() {
@@ -147,7 +148,7 @@ uint32_t TimeMeasure::getCumulatedTimeUsAndReset() {
 	return measure * 1000000.0f / elapsed_time;
 }
 
-uint32_t TimeMeasure::getMaxTimeUsAndReset() {
+uint32_t TimeMeasure::getMaxUsagePerLoop1000AndReset() {
 	uint32_t current_time;
 	uint32_t measure = atomicReadReset(&time_max, &current_time);
 

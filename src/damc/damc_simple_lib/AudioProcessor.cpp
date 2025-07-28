@@ -290,7 +290,8 @@ void AudioProcessor::onSlowTimer(uv_timer_t* handle) {
 		}
 		case 1:
 			for(size_t i = 0; i < TMI_NUMBER; i++) {
-				thisInstance->oscTimeMeasureMaxPerLoop[i].set(TimeMeasure::timeMeasure[i].getMaxTimeUsAndReset());
+				thisInstance->oscTimeMeasureMaxPerLoop[i].set(
+				    TimeMeasure::timeMeasure[i].getMaxUsagePerLoop1000AndReset());
 			}
 			break;
 		case 2:

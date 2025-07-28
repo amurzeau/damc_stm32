@@ -79,7 +79,9 @@ static void DAMC_processAudioFromDMAInterrupt() {
 
 	// Ensure PSRAM is not acceeded while in audio interrupt
 	// MPU_Config(0);
-	TimeMeasure::on1msElapsed();
+	TimeMeasure::timeMeasure[TMI_UsbInterrupt].endOfProcessingLoop(1000);
+	TimeMeasure::timeMeasure[TMI_AudioProcessing].endOfProcessingLoop(1000);
+	TimeMeasure::timeMeasure[TMI_OtherIRQ].endOfProcessingLoop(1000);
 
 	// Check lost interrupt if more than 1.5ms elapsed
 	DAMC_checkAudioInterruptLost();

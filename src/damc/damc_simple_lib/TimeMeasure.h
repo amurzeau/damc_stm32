@@ -11,18 +11,16 @@ public:
 
 	void beginMeasure();
 	void endMeasure();
-	void endAudioLoop();
+	void endOfProcessingLoop(uint32_t loopDurationUs);
 
 	/** @brief Return TIM2 counter in microseconds.
 	 */
 	static uint32_t getCurrent();
 
 	uint32_t getCumulatedTimeUsAndReset();
-	uint32_t getMaxTimeUsAndReset();
-	uint32_t getMaxTimeUs() { return time_max; }
+	uint32_t getMaxUsagePerLoop1000AndReset();
+	uint32_t getMaxUsagePerLoop1000() { return time_max; }
 	uint32_t getOnGoingDuration();
-
-	static void on1msElapsed();
 
 	static TimeMeasure timeMeasure[TMI_NUMBER];
 

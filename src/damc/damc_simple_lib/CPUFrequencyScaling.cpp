@@ -495,16 +495,19 @@ void CPUFrequencyScaling::updateCpuUsage() {
 	std::atomic_signal_fence(std::memory_order_seq_cst);
 
 	// CPU time in realtime interrupts
-	uint32_t cpu_usage_ratio_us = TimeMeasure::timeMeasure[TMI_UsbInterrupt].getMaxTimeUs() +
-	                              TimeMeasure::timeMeasure[TMI_AudioProcessing].getMaxTimeUs() +
-	                              TimeMeasure::timeMeasure[TMI_OtherIRQ].getMaxTimeUs();
+	uint32_t cpu_usage_ratio_x1000 = 0;
+	for(size_t i = 0; i < (size_t) TMI_NUMBER; i++) {
+		if(i == TMI_MainLoop)
+			continue;
+		cpu_usage_ratio_x1000 += TimeMeasure::timeMeasure[(TimeMeasureItem) i].getMaxUsagePerLoop1000();
+	}
 
 	// Duration of the main loop task so far (if its too long, we will also increase CPU frequency to speed it up)
 	uint32_t main_loop_task_duration_us = TimeMeasure::timeMeasure[TMI_MainLoop].getOnGoingDuration();
 
 	cpu_usage_points++;
-	if(cpu_usage_ratio_us > max_cpu_usage_ratio_per_thousand) {
-		max_cpu_usage_ratio_per_thousand = cpu_usage_ratio_us;
+	if(cpu_usage_ratio_x1000 > max_cpu_usage_ratio_per_thousand) {
+		max_cpu_usage_ratio_per_thousand = cpu_usage_ratio_x1000;
 
 		// We got a new maximum, wait for longer until we have no more maximum
 		cpu_usage_points = 0;
