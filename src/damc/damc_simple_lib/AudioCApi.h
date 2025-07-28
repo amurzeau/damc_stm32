@@ -13,6 +13,7 @@ enum TimeMeasureItem {
 	TMI_AudioProcessing,
 	TMI_OtherIRQ,
 	TMI_MainLoop,
+	TMI_TinyDenoiser,
 
 	TMI_NUMBER,
 };

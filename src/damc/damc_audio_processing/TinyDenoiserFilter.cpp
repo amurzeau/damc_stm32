@@ -11,11 +11,14 @@
 #include "TinyDenoiserModel/model.h"
 #include <ThreadInISR.h>
 
-DEFINE_ThreadInISR(tiny_denoiser_thread, TinyDenoiserFilter*, ADF1_FLT0, 0x0f);
+// One loop = 6.25ms
+DEFINE_ThreadInISR(tiny_denoiser_thread, TinyDenoiserFilter*, ADF1_FLT0, 0x0f, TMI_TinyDenoiser, 6250);
 
 // Model from
 // https://github.com/GreenWaves-Technologies/tiny_denoiser_v2
 // https://arxiv.org/pdf/2210.07692
+
+static TinyDenoiserFilter* startOfLoopInstance = nullptr;
 
 TinyDenoiserFilter::TinyDenoiserFilter(OscContainer* parent)
     : OscContainer(parent, "tinyDenoiserFilter", 9), enable(this, "enableIndex", 0), firstRun(true) {
@@ -37,6 +40,9 @@ void TinyDenoiserFilter::processSamples(float** samples, size_t count) {
 			tinydenoiser_model_reset();
 			firstRun = false;
 		}
+
+		if(startOfLoopInstance == nullptr)
+			startOfLoopInstance = this;
 
 		size_t resampledCount16khz = count / 3;
 
@@ -91,10 +97,13 @@ void TinyDenoiserFilter::processSamples(float** samples, size_t count) {
 
 			sampleAddedToWindowSinceLastModelRun -= WINDOW_PERIOD;
 
-			tiny_denoiser_thread.triggerRun(&TinyDenoiserFilter::modelRunStatic, this);
+			tiny_denoiser_thread.triggerRun(&TinyDenoiserFilter::modelRunStatic, this, startOfLoopInstance == this);
 		}
 	} else {
 		firstRun = true;
+
+		if(startOfLoopInstance == this)
+			startOfLoopInstance = nullptr;
 	}
 }
 

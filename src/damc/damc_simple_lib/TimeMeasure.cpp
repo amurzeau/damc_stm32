@@ -29,6 +29,7 @@ static GPIO_TypeDef* const DEBUG_GPIO_PORT[] = {
     [TMI_AudioProcessing] = STMOD_IO2_GPIO_Port,
     [TMI_OtherIRQ] = STMOD_IO3_GPIO_Port,
     [TMI_MainLoop] = STMOD_IO4_GPIO_Port,
+    [TMI_TinyDenoiser] = STMOD_INT_GPIO_Port,
 };
 
 static const uint32_t DEBUG_GPIO_PIN[] = {
@@ -36,6 +37,7 @@ static const uint32_t DEBUG_GPIO_PIN[] = {
     [TMI_AudioProcessing] = STMOD_IO2_Pin,
     [TMI_OtherIRQ] = STMOD_IO3_Pin,
     [TMI_MainLoop] = STMOD_IO4_Pin,
+    [TMI_TinyDenoiser] = STMOD_INT_Pin,
 };
 #endif
 
