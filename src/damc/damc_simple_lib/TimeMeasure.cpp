@@ -88,12 +88,12 @@ void TimeMeasure::endMeasure() {
 	isMeasuring = false;
 
 	__disable_irq();
-	uint32_t current_time = TIM2->CNT;
 	HAL_GPIO_WritePin(DEBUG_GPIO_PORT[index], DEBUG_GPIO_PIN[index], GPIO_PIN_RESET);
 
-	updateMeasureAndStop(current_time);
-
 	int32_t stackIndex = --stackRunningTasksIndex;
+
+	uint32_t current_time = TIM2->CNT;
+	updateMeasureAndStop(current_time);
 
 	// Restart paused measure
 	if(stackIndex >= 0)
