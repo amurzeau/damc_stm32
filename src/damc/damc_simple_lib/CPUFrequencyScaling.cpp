@@ -103,7 +103,7 @@ void setRawAHBDivider(uint32_t current_ahb_divider, uint32_t ahb_divider) {
 
 	/* Update the SystemCoreClock global variable */
 	SystemCoreClock = HAL_RCC_GetSysClockFreq() / ahb_divider;
-	HAL_InitTick(TICK_INT_PRIORITY);
+	SysTick->LOAD = (uint32_t) ((SystemCoreClock / (1000UL / (uint32_t) uwTickFreq)) - 1UL);
 }
 
 void CPUFrequencyScaling::setAHBDivider(uint32_t divider) {
@@ -202,7 +202,7 @@ void CPUFrequencyScaling::setRawCPUDivider(uint32_t divider) {
 
 	/* Update the SystemCoreClock global variable */
 	SystemCoreClock = HAL_RCC_GetCpuClockFreq();
-	HAL_SYSTICK_Config(SystemCoreClock / (1000UL / (uint32_t) uwTickFreq));
+	SysTick->LOAD = (uint32_t) ((SystemCoreClock / (1000UL / (uint32_t) uwTickFreq)) - 1UL);
 
 	uv_async_send(&asyncFrequencyChanged);
 }
