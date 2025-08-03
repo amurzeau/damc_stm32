@@ -501,6 +501,10 @@ void CPUFrequencyScaling::resetFrequencyToMaxPerformance() {
 
 	max_cpu_usage_ratio_per_thousand = 0;
 	cpu_usage_points = 0;
+
+	// Wait 100ms before decreasing again the frequency.
+	// This ensure we don't decrease the frequency too fast without having all time measurements updated.
+	// This also smooth out the frequency, avoiding changing it too often.
 	cpu_usage_points_target = 100;
 
 	// Go back to max performance in case an option were enabled needing the extra performance
