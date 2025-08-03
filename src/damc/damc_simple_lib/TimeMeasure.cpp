@@ -25,19 +25,19 @@ static const uint32_t DEBUG_GPIO_PIN[] = {
 #include <stm32n6xx_hal_gpio.h>
 
 static GPIO_TypeDef* const DEBUG_GPIO_PORT[] = {
-    [TMI_UsbInterrupt] = STMOD_IO1_GPIO_Port,
-    [TMI_AudioProcessing] = STMOD_IO2_GPIO_Port,
-    [TMI_OtherIRQ] = STMOD_IO3_GPIO_Port,
-    [TMI_MainLoop] = STMOD_IO4_GPIO_Port,
-    [TMI_TinyDenoiser] = STMOD_INT_GPIO_Port,
+    [TMI_UsbInterrupt] = DEBUG_1_GPIO_Port,
+    [TMI_AudioProcessing] = DEBUG_2_GPIO_Port,
+    [TMI_OtherIRQ] = DEBUG_3_GPIO_Port,
+    [TMI_MainLoop] = DEBUG_4_GPIO_Port,
+    [TMI_TinyDenoiser] = DEBUG_5_GPIO_Port,
 };
 
 static const uint32_t DEBUG_GPIO_PIN[] = {
-    [TMI_UsbInterrupt] = STMOD_IO1_Pin,
-    [TMI_AudioProcessing] = STMOD_IO2_Pin,
-    [TMI_OtherIRQ] = STMOD_IO3_Pin,
-    [TMI_MainLoop] = STMOD_IO4_Pin,
-    [TMI_TinyDenoiser] = STMOD_INT_Pin,
+    [TMI_UsbInterrupt] = DEBUG_1_Pin,
+    [TMI_AudioProcessing] = DEBUG_2_Pin,
+    [TMI_OtherIRQ] = DEBUG_3_Pin,
+    [TMI_MainLoop] = DEBUG_4_Pin,
+    [TMI_TinyDenoiser] = DEBUG_5_Pin,
 };
 #endif
 
