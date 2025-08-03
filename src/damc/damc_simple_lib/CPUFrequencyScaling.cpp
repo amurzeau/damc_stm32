@@ -223,7 +223,8 @@ void CPUFrequencyScaling::setRawCPUDivider(uint32_t divider) {
 //   - Updating the timer prescaler requires IRQs disabled to avoid an USB IRQ updating TimeMeasure at the wrong time
 //   while the timer is reset or counting with a wrong prescaler.
 void CPUFrequencyScaling::setRawAXIDivider(uint32_t divider) {
-	divider = clampDivider(divider, 2, 256, false);
+	// Use max divider = 32 as USB don't work with AHB at 20Mhz. So ensure it is 25Mhz at least.
+	divider = clampDivider(divider, 2, 32, false);
 
 	// AXI frequency must be a multiple of 1Mhz to ensure TIM2 timer can be 1Mhz using its prescaler.
 	uint32_t pllFrequencyMhz = HAL_RCCEx_GetPLL1CLKFreq();
