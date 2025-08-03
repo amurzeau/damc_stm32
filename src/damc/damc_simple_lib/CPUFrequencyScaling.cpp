@@ -210,6 +210,8 @@ void CPUFrequencyScaling::setRawCPUDivider(uint32_t divider) {
 // Max 400Mhz
 // Updating the AXI clock frequency requires also:
 // - Updating AHB frequency so it is capped at 200Mhz
+// - Update the TIM2 prescaler instead of TIMPRE divider as TIMPRE clock frequency must be >= AHB or a multiple of AHB,
+//   not lower
 // - Updating the TIM2 prescaler which is used by TimeMeasure
 //   - Updating the prescaler requires setting UG bit so the update take place immediately:
 //     - Wait the counter to increment, meaning the internal prescaler counter in the timer is near 0 and we don't loose
@@ -221,15 +223,19 @@ void CPUFrequencyScaling::setRawCPUDivider(uint32_t divider) {
 //   - Updating the timer prescaler requires IRQs disabled to avoid an USB IRQ updating TimeMeasure at the wrong time
 //   while the timer is reset or counting with a wrong prescaler.
 void CPUFrequencyScaling::setRawAXIDivider(uint32_t divider) {
-	// Only allow between 2 and 16 and power of 2 to be able to compensate the timer frequency using TIMPRE.
-	divider = clampDivider(divider, 2, 16, true);
+	divider = clampDivider(divider, 2, 256, false);
+
+	// AXI frequency must be a multiple of 1Mhz to ensure TIM2 timer can be 1Mhz using its prescaler.
+	uint32_t pllFrequencyMhz = HAL_RCCEx_GetPLL1CLKFreq();
+	while(divider > 2 && ((pllFrequencyMhz / divider) % 1000000) != 0)
+		divider--;
+
 	uint32_t current_divider = LL_RCC_IC2_GetDivider();
 
 	if(divider == current_divider)
 		return;
 
 	uint32_t hpre_value;
-	uint32_t timer_frequency = HAL_RCCEx_GetPLL1CLKFreq() / divider / (1UL << LL_RCC_GetTIMPrescaler());
 
 	// AHB max is 200Mhz
 	// HPRE: if divider is 2 (AXI >= 400MHz), AHB = AXI / 2 else AHB = AXI
@@ -239,18 +245,25 @@ void CPUFrequencyScaling::setRawAXIDivider(uint32_t divider) {
 		hpre_value = getBitPosition(1);
 	}
 
-	// TIM2: reset every 1s
-	// Update the TIM2 prescaler instead of TIMPRE divider as TIMPRE clock frequency must be >= AHB or a multiple of
-	// AHB, not lower
+	// Use same value for TIMPRE as HPRE so Timer Frequency is the same as AHB
+	// Note: Timer frequency must be a multiple of AHB, so >= AHB at least.
+	uint32_t timer_frequency = HAL_RCCEx_GetPLL1CLKFreq() / divider / (1UL << hpre_value);
+
+	// Ajust TIM2 prescaler so it always counts at 1Mhz frequency
 	uint32_t tim_prescaler_new_value = (timer_frequency / 1000000) - 1;
 
 	// Read CFGR2 before changing AXI divider for faster update
-	uint32_t cfgr2_new_value = (RCC->CFGR2 & (~RCC_CFGR2_HPRE)) | (hpre_value << RCC_CFGR2_HPRE_Pos);
+	// Prepare new CFGR2 value for HPRE and TIMPRE
+	uint32_t cfgr2_new_value = (RCC->CFGR2 & (~(RCC_CFGR2_HPRE | RCC_CFGR2_TIMPRE))) |
+	                           (hpre_value << RCC_CFGR2_HPRE_Pos) | (hpre_value << RCC_CFGR2_TIMPRE_Pos);
 
+	// Prepare new IC2CFGR value for IC2
 	uint32_t ic2cfgr_new_value = (RCC->IC2CFGR & (~RCC_IC2CFGR_IC2INT)) | ((divider - 1UL) << RCC_IC2CFGR_IC2INT_Pos);
 
 	// Handle the timer TIMPRE divider as close as possible to the AXI divider to avoid too much bad measurement in
 	// TimeMeasure.
+	// Also use an order that makes the timers slower until all operations are done so it doesn't count too fast
+	// temporarily.
 	if(divider > current_divider) {
 		// We are increasing the AXI divider so reducing frequency
 
@@ -259,6 +272,8 @@ void CPUFrequencyScaling::setRawAXIDivider(uint32_t divider) {
 		uint32_t previous_tim_counter = TIM2->CNT;
 
 		__disable_irq();
+		// Wait a new value so the prescaler is near 0.
+		// The prescaler will be reset while setting UG bit.
 		while((tim_counter = TIM2->CNT) == previous_tim_counter)
 			;
 		// TIM2 counter just increased, go on
@@ -270,14 +285,15 @@ void CPUFrequencyScaling::setRawAXIDivider(uint32_t divider) {
 		TIM2->PSC = tim_prescaler_new_value;
 		// Apply the new prescaler value, but this reset the counter to 0
 		TIM2->EGR |= TIM_EGR_UG;
+		// Wait by doing a read on EGR register synchronisation to ensure the update is done in the timer peripheral
 		(void) TIM2->EGR;
 		// Restore back the counter value
 		TIM2->CNT = tim_counter;
 
-		__enable_irq();
-
-		// Update HPRE divider for AHB
+		// Update HPRE and TIMPRE divider for AHB and Timers (possibly increasing their frequency)
 		RCC->CFGR2 = cfgr2_new_value;
+
+		__enable_irq();
 	} else {
 		// Reducing divider so increasing frequency
 
@@ -286,16 +302,20 @@ void CPUFrequencyScaling::setRawAXIDivider(uint32_t divider) {
 		uint32_t previous_tim_counter = TIM2->CNT;
 
 		__disable_irq();
+		// Wait a new value so the prescaler is near 0.
+		// The prescaler will be reset while setting UG bit.
 		while((tim_counter = TIM2->CNT) == previous_tim_counter)
 			;
+		// TIM2 counter just increased, go on
 
-		// First reduce AHB frequencies before increasing AXI
+		// First reduce AHB and Timer frequencies before increasing AXI
 		RCC->CFGR2 = cfgr2_new_value;
 
 		// Update the prescaler juste before changing AXI speed for a minimal transition time with wrong frequency
 		TIM2->PSC = tim_prescaler_new_value;
 		// Apply the new prescaler value, but this reset the counter to 0
 		TIM2->EGR |= TIM_EGR_UG;
+		// Wait by doing a read on EGR register synchronisation to ensure the update is done in the timer peripheral
 		(void) TIM2->EGR;
 		// Restore back the counter value
 		TIM2->CNT = tim_counter;
@@ -353,7 +373,14 @@ static uint32_t getTimerDivider() {
 }
 
 void CPUFrequencyScaling::setRawTimerDivider(uint32_t index, uint32_t divider) {
-	divider = clampDivider(divider, 1, 8, true);
+	// Timer frequency must be >= AHB frequency, else timer clock pulse will be skipped.
+	uint32_t maxDivider = getAHBDivider();
+
+	// Max TIMPRE divider is 8
+	if(maxDivider > 8)
+		maxDivider = 8;
+
+	divider = clampDivider(divider, 1, maxDivider, true);
 
 	if(index != 1)
 		return;
