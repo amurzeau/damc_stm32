@@ -63,9 +63,40 @@ Reset_Handler:
   ldr   r0, =_estack
   mov   sp, r0          /* set stack pointer */
 
-/* Allow Debug by writting 0xB4 to BSEC_AP_UNLOCK */
+/* Allow debugging when booting from FLASH, according to the STM32N6 Reference Manual:
+ * - Chapter "78.6.1 BSEC control over debug"
+ * - Chapter "4.5.18 BSEC debug control register (BSEC_DBGCR)"
+ * - Chapter "4.5.19 BSEC AP unlock (BSEC_AP_UNLOCK)"
+ *
+ * When using a stock STM32N6570-DK board, the STM32N6 is in BSEC-Closed mode.
+ * Which means we need to manually open the debug access to allow debugging even when booting from FLASH.
+ * Note: when booting in DEV Boot mode, the Boot ROM already takes care of opening the debug access.
+ *
+ * When the Boot ROM bootloader starts the FSBL, the HDPL level is 1 (0x51 in BSEC_HDPLSR register).
+ * Setting AUTH_HDPL to 0x51 means Level 1 and so AUTH_HDPL <= HDPLSR.
+ * In that case (AUTH_HDPL <= HDPLSR):
+ * - UNLOCK value is used for debug nonsecure (where 0xB4 means debug is open)
+ * - (UNLOCK & AUTH_SEC) value is used for debug secure (where 0xB4 means debug is open)
+ *
+ * So setting both UNLOCK and AUTH_SEC to 0xB4 and AUTH_HDPL to 0x51 will open the debug access for both secure and nonsecure.
+ * 
+ * If nothing in the FSBL or later change the HDPL (which should not be the case except with special code doing this)
+ * then the HDPL level is 1 through the whole application execution, and the debug access will be kept open.
+ * 
+ * So, to allow debugging, we need to:
+ * - Open the debug access port to the Cortex-M55 by writing 0xB4 to BSEC_AP_UNLOCK
+ * - Enable the non-secure/secure debug by writing 0xB451B400 to BSEC_DBGCR
+ *
+ * Note: these values are taken from the values in these registers when booting in DEV mode.
+ */
+/* Open the debug access port to the Cortex-M55 by writing 0xB4 to BSEC_AP_UNLOCK */
   ldr r0, = 0x56009E90
   mov r1, #0xB4
+  str r1, [r0]
+
+/* Enable the non-secure/secure debug by writing 0xB451B400 to BSEC_DBGCR */
+  ldr r0, = 0x56009E8C
+  ldr r1, = 0xB451B400
   str r1, [r0]
 
 /* Clear D-TCM */
