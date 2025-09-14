@@ -91,22 +91,6 @@ size_t Controls::getControlFromUSB(
     uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest, uint8_t* data) {
 	size_t size = 0;
 
-	if(unit_id == AUDIO_UNIT_ID_OFFSET_CLOCK_SOURCE) {
-		switch(control_selector) {
-			case AUDIO_CONTROL_SAM_FREQ_CONTROL:
-				switch(bRequest) {
-					case AUDIO_REQ_CUR:
-						USBControlWrite32(size, data, 48000);
-						break;
-					case AUDIO_REQ_RANGE:
-						USBControlWriteRange32(size, data, 48000, 48000, 1);
-						break;
-				}
-				break;
-		}
-		return size;
-	}
-
 	uint8_t endpoint_index = (unit_id - 1) / AUDIO_UNIT_ID_PER_ENDPOINT;
 	uint8_t unit_id_offset = (unit_id - 1) % AUDIO_UNIT_ID_PER_ENDPOINT + 1;
 
@@ -136,6 +120,20 @@ size_t Controls::getControlFromUSB(
 							break;
 						case AUDIO_REQ_RANGE:
 							USBControlWriteRange8(size, data, 0, 1, 1);
+							break;
+					}
+					break;
+			}
+			break;
+		case AUDIO_UNIT_ID_OFFSET_CLOCK_SOURCE:
+			switch(control_selector) {
+				case AUDIO_CONTROL_SAM_FREQ_CONTROL:
+					switch(bRequest) {
+						case AUDIO_REQ_CUR:
+							USBControlWrite32(size, data, 48000);
+							break;
+						case AUDIO_REQ_RANGE:
+							USBControlWriteRange32(size, data, 48000, 48000, 0);
 							break;
 					}
 					break;
