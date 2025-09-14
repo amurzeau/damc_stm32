@@ -67,6 +67,9 @@ extern "C" {
 #define AUDIO_OUT_FEEDBACK_EP 0x84U
 #define AUDIO_IN_EP           0x85U
 
+// Windows requires a max value of 4 for feedback endpoint bInterval
+#define AUDIO_FEEDBACK_BINTERVAL 0x04U
+
 #define AUDIO_CONTROL_INTERFACE_ID        2
 #define AUDIO_UNIT_ID_PER_ENDPOINT        4
 #define AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT 3

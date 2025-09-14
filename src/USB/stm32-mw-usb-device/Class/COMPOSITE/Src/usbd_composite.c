@@ -122,7 +122,7 @@ USBD_ClassTypeDef USBD_COMPOSITE = {
     0x00,                                                                            /* iChannelNames */                                       \
     0x00, 0x00,                                                                      /* bmControls */                                          \
     iTerminal, /* iTerminal */                                                       /* 17 byte*/                                              \
-                                                                                                                                    \
+                                                                                                                                               \
     /* USB Speaker Audio Feature Unit Descriptor */                                                                                            \
     18,                                                                              /* bLength */                                             \
     AUDIO_INTERFACE_DESCRIPTOR_TYPE,                                                 /* bDescriptorType */                                     \
@@ -133,7 +133,7 @@ USBD_ClassTypeDef USBD_COMPOSITE = {
     0, 0x00, 0x00, 0x00,                                                             /* bmaControls(1) */                                      \
     0, 0x00, 0x00, 0x00,                                                             /* bmaControls(2) */                                      \
     0x00, /* iTerminal */                                                            /* 18 byte*/                                              \
-                                                                                                                                    \
+                                                                                                                                               \
     /* USB Speaker Output Terminal Descriptor */                                                                                               \
     AUDIO_OUTPUT_TERMINAL_DESC_SIZE,                                                 /* bLength */                                             \
     AUDIO_INTERFACE_DESCRIPTOR_TYPE,                                                 /* bDescriptorType */                                     \
@@ -262,7 +262,7 @@ USBD_ClassTypeDef USBD_COMPOSITE = {
     AUDIO_OUT_FEEDBACK_EP + (bInterfaceNumber), /* bEndpointAddress 1 out endpoint */                                                                                 \
     USBD_EP_TYPE_ISOC | USBD_EP_USAGE_FEEDBACK, /* bmAttributes */                                                                                                    \
     AUDIO_OUT_FEEDBACK_MAX_PACKET, 0x00,        /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */                                                   \
-    0x08,                                       /* bInterval */
+    AUDIO_FEEDBACK_BINTERVAL,                   /* bInterval */
 
 #define DECLARE_ENDPOINT_IN(bInterfaceNumber, bTerminalLink, bNrChannels, wMaxPacketSize)                                                                     \
   /* USB Mic Standard AS Interface Descriptor - Audio Streaming Zero Bandwith */                                                                              \

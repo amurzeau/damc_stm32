@@ -352,7 +352,7 @@ static uint8_t USBD_AUDIO_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 
     if (pdev->dev_speed == USBD_SPEED_HIGH)
     {
-      pdev->ep_in[ep_feedback & 0xFU].bInterval = AUDIO_HS_BINTERVAL;
+      pdev->ep_in[ep_feedback & 0xFU].bInterval = AUDIO_FEEDBACK_BINTERVAL;
     }
     else /* LOW and FULL-speed endpoints */
     {
@@ -860,10 +860,18 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef *pdev)
       }
       if ((data->next_target_frame_feedback == -1 && !data->feedback_transfer_in_progress) || data->next_target_frame_feedback == frameNumber)
       {
-        data->buffer_feedback[0] = data->feedback & 0xFF;
-        data->buffer_feedback[1] = (data->feedback >> 8) & 0xFF;
-        data->buffer_feedback[2] = (data->feedback >> 16) & 0xFF;
-        data->buffer_feedback[3] = (data->feedback >> 24) & 0xFF;
+        /*
+		 * Win10 and OSX UAC2 drivers require number of samples per packet instead of per microframe
+		 * in order to honor the feedback value.
+		 * Linux snd-usb-audio detects the applied bit-shift automatically.
+		 */
+        uint32_t adjustedFeedback = data->feedback;
+        adjustedFeedback <<= (AUDIO_HS_BINTERVAL - 1);
+
+        data->buffer_feedback[0] = adjustedFeedback & 0xFF;
+        data->buffer_feedback[1] = (adjustedFeedback >> 8) & 0xFF;
+        data->buffer_feedback[2] = (adjustedFeedback >> 16) & 0xFF;
+        data->buffer_feedback[3] = (adjustedFeedback >> 24) & 0xFF;
         data->feedback_transfer_in_progress = 1;
         USBD_LL_Transmit(pdev, data->endpoint_feedback, data->buffer_feedback, sizeof(data->buffer_feedback));
       }
@@ -1161,7 +1169,7 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
       // Schedule the next feedback transfer
       // Note: next_target_frame_feedback is -1 when we get the first ISO In token
       PCD_HandleTypeDef *pcd = (PCD_HandleTypeDef *)pdev->pData;
-      data->next_target_frame_feedback = (pcd->FrameNumber + 127) & 0x3FFF;
+      data->next_target_frame_feedback = (pcd->FrameNumber + (1 << (AUDIO_FEEDBACK_BINTERVAL - 1)) - 1) & 0x3FFF;
 
       // Mark audio out sync as working as the host read our feedback clock data
       GLITCH_DETECTION_set_USB_out_feedback_state(data->index, true);
