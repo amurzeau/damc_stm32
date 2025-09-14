@@ -99,7 +99,7 @@ USBD_ClassTypeDef USBD_COMPOSITE = {
 #define USBD_EP_SYNC_ASYNC     0x04U
 #define USBD_EP_USAGE_FEEDBACK (1 << 4)
 
-#define DECLARE_UNITS_OUT(iTerminal, bBaseTerminalID)                                                                                          \
+#define DECLARE_UNITS_OUT(iTerminal, bBaseTerminalID, wTerminalType)                                                                           \
   /* USB Speaker Class-specific AC Interface Descriptor */                                                                                     \
   8,                                                                                 /* bLength */                                             \
     AUDIO_INTERFACE_DESCRIPTOR_TYPE,                                                 /* bDescriptorType */                                     \
@@ -139,14 +139,14 @@ USBD_ClassTypeDef USBD_COMPOSITE = {
     AUDIO_INTERFACE_DESCRIPTOR_TYPE,                                                 /* bDescriptorType */                                     \
     AUDIO_CONTROL_OUTPUT_TERMINAL,                                                   /* bDescriptorSubtype */                                  \
     bBaseTerminalID *AUDIO_UNIT_ID_PER_ENDPOINT + 0x04,                              /* bTerminalID */                                         \
-    0x03, 0x06,                                                                      /* wTerminalType  0x0603  Line connector */               \
+    wTerminalType,                                                                   /* wTerminalType */                                       \
     0x00,                                                                            /* bAssocTerminal */                                      \
     bBaseTerminalID *AUDIO_UNIT_ID_PER_ENDPOINT + AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT, /* bSourceID */                                           \
     bBaseTerminalID *AUDIO_UNIT_ID_PER_ENDPOINT + AUDIO_UNIT_ID_OFFSET_CLOCK_SOURCE, /* bCSourceID */                                          \
     0x00, 0x00,                                                                      /* bmControls */                                          \
     iTerminal, /* iTerminal */                                                       /* 09 byte*/
 
-#define DECLARE_UNITS_IN(iTerminal, bBaseTerminalID)                                                                                           \
+#define DECLARE_UNITS_IN(iTerminal, bBaseTerminalID, wTerminalType)                                                                            \
   /* USB Speaker Class-specific AC Interface Descriptor */                                                                                     \
   8,                                                                                 /* bLength */                                             \
     AUDIO_INTERFACE_DESCRIPTOR_TYPE,                                                 /* bDescriptorType */                                     \
@@ -162,7 +162,7 @@ USBD_ClassTypeDef USBD_COMPOSITE = {
     AUDIO_INTERFACE_DESCRIPTOR_TYPE,                                                 /* bDescriptorType */                                     \
     AUDIO_CONTROL_INPUT_TERMINAL,                                                    /* bDescriptorSubtype */                                  \
     bBaseTerminalID *AUDIO_UNIT_ID_PER_ENDPOINT + 0x02,                              /* bTerminalID */                                         \
-    0x03, 0x06,                                                                      /* wTerminalType  0x0603  Line connector*/                \
+    wTerminalType,                                                                   /* wTerminalType */                                       \
     0x00,                                                                            /* bAssocTerminal */                                      \
     bBaseTerminalID *AUDIO_UNIT_ID_PER_ENDPOINT + AUDIO_UNIT_ID_OFFSET_CLOCK_SOURCE, /* bCSourceID */                                          \
     0x02,                                                                            /* bNrChannels */                                         \
@@ -492,9 +492,9 @@ __ALIGN_BEGIN static uint8_t USBD_COMPOSITE_CfgDesc[] __ALIGN_END = {
   HIBYTE(USB_AUDIO_CONTROL_DESC_SIZ),
   0x00, /*  bmControls */
 
-  DECLARE_UNITS_OUT(USBD_AUDIO_STR_SPEAKER1, 0) /* 31 bytes */
-  DECLARE_UNITS_IN(USBD_AUDIO_STR_MIC1, 1)      /* 31 bytes */
-  DECLARE_UNITS_OUT(USBD_AUDIO_STR_SPEAKER2, 2) /* 31 bytes */
+  DECLARE_UNITS_OUT(USBD_AUDIO_STR_SPEAKER1, 0, AUDIO_TERMINAL_TYPE_MASTER) /* 31 bytes */
+  DECLARE_UNITS_IN(USBD_AUDIO_STR_MIC1, 1, AUDIO_TERMINAL_TYPE_MIC)         /* 31 bytes */
+  DECLARE_UNITS_OUT(USBD_AUDIO_STR_SPEAKER2, 2, AUDIO_TERMINAL_TYPE_COMP)   /* 31 bytes */
 
   /* Endpoint control interrupt - Standard Descriptor */
   AUDIO_STANDARD_ENDPOINT_DESC_SIZE, /* bLength */
