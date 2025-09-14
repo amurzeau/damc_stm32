@@ -14,7 +14,8 @@ public:
 	void init();
 
 	// Called from USB interrupt
-	uint16_t getControlFromUSB(uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest);
+	size_t getControlFromUSB(
+	    uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest, uint8_t* data);
 	void setControlFromUSB(
 	    uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest, uint16_t value);
 

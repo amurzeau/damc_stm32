@@ -29,79 +29,160 @@ void Controls::init() {
 
 		controlsMapping[i].volumeControl->addChangeCallback([this, i](float) {
 			if(!processUsbControlChange)
-				USBD_AUDIO_NotifyUnitIdChanged(i * AUDIO_UNIT_ID_PER_ENDPOINT + AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT);
+				USBD_AUDIO_NotifyUnitIdChanged(i * AUDIO_UNIT_ID_PER_ENDPOINT + AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT,
+				                               AUDIO_CONTROL_VOLUME);
 		});
 		controlsMapping[i].muteControl->addChangeCallback([this, i](bool) {
 			if(!processUsbControlChange)
-				USBD_AUDIO_NotifyUnitIdChanged(i * AUDIO_UNIT_ID_PER_ENDPOINT + AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT);
+				USBD_AUDIO_NotifyUnitIdChanged(i * AUDIO_UNIT_ID_PER_ENDPOINT + AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT,
+				                               AUDIO_CONTROL_MUTE);
 		});
 	}
 
 	instance = this;
 }
 
-uint16_t Controls::getControlFromUSB(uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest) {
-	uint8_t endpoint_index = (unit_id - 1) / AUDIO_UNIT_ID_PER_ENDPOINT;
-	uint8_t unit_id_offset = (unit_id - 1) % AUDIO_UNIT_ID_PER_ENDPOINT + 1;
-	if(endpoint_index >= controlsMapping.size())
-		return 0;
+static void USBControlWrite8(size_t& size, uint8_t* data, int8_t value) {
+	data[size] = value;
+	size++;
+}
 
-	if(unit_id_offset == AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT) {
+static void USBControlWrite16(size_t& size, uint8_t* data, int16_t value) {
+	data[size] = value & 0xFF;
+	size++;
+	data[size] = value >> 8;
+	size++;
+}
+
+static void USBControlWrite32(size_t& size, uint8_t* data, int32_t value) {
+	data[size] = value & 0xFF;
+	size++;
+	data[size] = (value >> 8) & 0xFF;
+	size++;
+	data[size] = (value >> 16) & 0xFF;
+	size++;
+	data[size] = (value >> 24) & 0xFF;
+	size++;
+}
+
+static void USBControlWriteRange8(size_t& size, uint8_t* data, int8_t min, int8_t max, int8_t res) {
+	USBControlWrite16(size, data, 1);
+	USBControlWrite8(size, data, min);
+	USBControlWrite8(size, data, max);
+	USBControlWrite8(size, data, res);
+}
+
+static void USBControlWriteRange16(size_t& size, uint8_t* data, int16_t min, int16_t max, int16_t res) {
+	USBControlWrite16(size, data, 1);
+	USBControlWrite16(size, data, min);
+	USBControlWrite16(size, data, max);
+	USBControlWrite16(size, data, res);
+}
+
+static void USBControlWriteRange32(size_t& size, uint8_t* data, int32_t min, int32_t max, int32_t res) {
+	USBControlWrite16(size, data, 1);
+	USBControlWrite32(size, data, min);
+	USBControlWrite32(size, data, max);
+	USBControlWrite32(size, data, res);
+}
+
+volatile int error_control = 0;
+size_t Controls::getControlFromUSB(
+    uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest, uint8_t* data) {
+	size_t size = 0;
+
+	if(unit_id == AUDIO_UNIT_ID_OFFSET_CLOCK_SOURCE) {
 		switch(control_selector) {
-			case AUDIO_CONTROL_VOLUME:
+			case AUDIO_CONTROL_SAM_FREQ_CONTROL:
 				switch(bRequest) {
-					case AUDIO_REQ_GET_CUR:
-						return (uint16_t) (int16_t) (controlsMapping[endpoint_index].volumeControl->getToOsc() * 256);
-					case AUDIO_REQ_GET_MIN:
-						return (uint16_t) (int16_t) (-127 * 256);
-					case AUDIO_REQ_GET_MAX:
-						return (uint16_t) (int16_t) (20 * 256);
-					case AUDIO_REQ_GET_RES:
-						return 256;
-				}
-				break;
-
-			case AUDIO_CONTROL_MUTE:
-				switch(bRequest) {
-					case AUDIO_REQ_GET_CUR:
-						return controlsMapping[endpoint_index].muteControl->get() ? 1 : 0;
-					case AUDIO_REQ_GET_MIN:
-						return 0;
-					case AUDIO_REQ_GET_MAX:
-						return 1;
-					case AUDIO_REQ_GET_RES:
-						return 1;
+					case AUDIO_REQ_CUR:
+						USBControlWrite32(size, data, 48000);
+						break;
+					case AUDIO_REQ_RANGE:
+						USBControlWriteRange32(size, data, 48000, 48000, 1);
+						break;
 				}
 				break;
 		}
+		return size;
 	}
-	return 0;
+
+	uint8_t endpoint_index = (unit_id - 1) / AUDIO_UNIT_ID_PER_ENDPOINT;
+	uint8_t unit_id_offset = (unit_id - 1) % AUDIO_UNIT_ID_PER_ENDPOINT + 1;
+
+	if(endpoint_index >= controlsMapping.size())
+		return 0;
+
+	switch(unit_id_offset) {
+		case AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT:
+			switch(control_selector) {
+				case AUDIO_CONTROL_VOLUME:
+					switch(bRequest) {
+						case AUDIO_REQ_CUR:
+							USBControlWrite16(
+							    size, data, (int16_t) controlsMapping[endpoint_index].volumeControl->getToOsc() * 256);
+							break;
+						case AUDIO_REQ_RANGE:
+							USBControlWriteRange16(
+							    size, data, (int16_t) (-127 * 256), (int16_t) (20 * 256), (int16_t) (1 * 256));
+							break;
+					}
+					break;
+
+				case AUDIO_CONTROL_MUTE:
+					switch(bRequest) {
+						case AUDIO_REQ_CUR:
+							USBControlWrite8(size, data, controlsMapping[endpoint_index].muteControl->get() ? 1 : 0);
+							break;
+						case AUDIO_REQ_RANGE:
+							USBControlWriteRange8(size, data, 0, 1, 1);
+							break;
+					}
+					break;
+			}
+			break;
+	}
+
+	return size;
 }
 
 void Controls::setControlFromUSB(
     uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest, uint16_t value) {
 	uint8_t endpoint_index = (unit_id - 1) / AUDIO_UNIT_ID_PER_ENDPOINT;
 	uint8_t unit_id_offset = (unit_id - 1) % AUDIO_UNIT_ID_PER_ENDPOINT + 1;
-	if(endpoint_index >= controlsMapping.size())
+	if(endpoint_index >= controlsMapping.size()) {
+		error_control++;
 		return;
+	}
 
-	if(bRequest != AUDIO_REQ_SET_CUR)
+	if(bRequest != AUDIO_REQ_CUR) {
+		error_control++;
 		return;
+	}
 
-	if(unit_id_offset == AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT) {
-		switch(control_selector) {
-			case AUDIO_CONTROL_VOLUME:
-				controlsMapping[endpoint_index].volumeToSet.value = (int16_t) value / 256.f;
-				controlsMapping[endpoint_index].volumeToSet.isChanged = true;
-				uv_async_send(&asyncControlChanged);
-				break;
+	switch(unit_id_offset) {
+		case AUDIO_UNIT_ID_OFFSET_FEATURE_UNIT:
+			switch(control_selector) {
+				case AUDIO_CONTROL_VOLUME:
+					controlsMapping[endpoint_index].volumeToSet.value = (int16_t) value / 256.f;
+					controlsMapping[endpoint_index].volumeToSet.isChanged = true;
+					uv_async_send(&asyncControlChanged);
+					break;
 
-			case AUDIO_CONTROL_MUTE:
-				controlsMapping[endpoint_index].muteToSet.value = value == 0 ? false : true;
-				controlsMapping[endpoint_index].muteToSet.isChanged = true;
-				uv_async_send(&asyncControlChanged);
-				break;
-		}
+				case AUDIO_CONTROL_MUTE:
+					controlsMapping[endpoint_index].muteToSet.value = value == 0 ? false : true;
+					controlsMapping[endpoint_index].muteToSet.isChanged = true;
+					uv_async_send(&asyncControlChanged);
+					break;
+			}
+			break;
+		case AUDIO_UNIT_ID_OFFSET_CLOCK_SOURCE:
+			switch(control_selector) {
+				case AUDIO_CONTROL_SAM_FREQ_CONTROL:
+					// Setting sampling rate not implemented, only 48Khz supported.
+					break;
+			}
+			break;
 	}
 }
 void Controls::onControlChangedStatic(uv_async_t* handle) {

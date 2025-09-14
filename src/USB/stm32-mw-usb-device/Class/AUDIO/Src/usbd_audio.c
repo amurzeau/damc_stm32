@@ -61,6 +61,7 @@ EndBSPDependencies */
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_audio.h"
+#include "usbd_def.h"
 #include PLATFORM_HEADER
 #include "usbd_conf.h"
 #include "usbd_ctlreq.h"
@@ -179,12 +180,12 @@ void USBD_AUDIO_trace(USBD_AUDIO_LoopbackDataTypeDef *data, const char *operatio
 }
 #endif
 
-uint8_t USBD_AUDIO_isFeedbackEndpoint(uint8_t epnum)
+static uint8_t USBD_AUDIO_isFeedbackEndpoint(uint8_t epnum)
 {
   return (((epnum & 0x0F) - (AUDIO_OUT_FEEDBACK_EP & 0x0F)) % 2) == 0;
 }
 
-USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromEndpoint(uint8_t epnum, uint8_t is_in)
+static USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromEndpoint(uint8_t epnum, uint8_t is_in)
 {
   if (is_in)
   {
@@ -204,7 +205,7 @@ USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromEndpoint(uint8_t epnum, ui
   }
 }
 
-USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromInterface(USBD_AUDIO_HandleTypeDef *haudio, uint8_t interface)
+static USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromInterface(USBD_AUDIO_HandleTypeDef *haudio, uint8_t interface)
 {
   if (interface < 3 || haudio == NULL)
     return NULL;
@@ -230,9 +231,9 @@ USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromInterface(USBD_AUDIO_Handl
   return NULL;
 }
 
-USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromUnitId(USBD_AUDIO_HandleTypeDef *haudio, uint8_t unitId)
+static USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromUnitId(uint8_t unitId)
 {
-  if (unitId < 1 || haudio == NULL)
+  if (unitId < 1)
     return NULL;
 
   uint32_t index = (unitId - 1) / AUDIO_UNIT_ID_PER_ENDPOINT / 2;
@@ -268,10 +269,35 @@ USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromUnitId(USBD_AUDIO_HandleTy
   */
 USBD_AUDIO_LoopbackDataTypeDef usb_audio_endpoint_out_data[AUDIO_OUT_NUMBER];
 USBD_AUDIO_LoopbackDataTypeDef usb_audio_endpoint_in_data[AUDIO_IN_NUMBER];
-static uint16_t usb_audio_notify_unit_id_change;
-static uint16_t usb_audio_notify_in_progress_data;
+static uint32_t usb_audio_notify_unit_id_change;
+
+struct USBD_AUDIO_InterruptData
+{
+  uint8_t bInfo;
+  uint8_t bAttribute;
+  uint16_t wValue;  // control selector + channel number
+  uint16_t wIndex;  // entity ID + interface ID
+};
+static_assert(sizeof(struct USBD_AUDIO_InterruptData) == 6, "USB Audio Class v2 require 6 bytes per interrupt");
+
+static struct USBD_AUDIO_InterruptData usb_audio_notify_in_progress_data;
 
 static volatile uint32_t *SCB_DEMCR = (volatile uint32_t *)0xE000EDFC;  //address of the register
+
+void USBD_AUDIO_NotifyUnitIdChanged(uint8_t unit_id, uint8_t control_selector)
+{
+  usb_audio_notify_unit_id_change |= 1 << (unit_id * 2 + (control_selector == AUDIO_CONTROL_VOLUME));
+}
+
+uint32_t USBD_AUDIO_GetUnitIdFromChangeId(uint32_t change_id)
+{
+  return change_id / 2;
+}
+
+uint32_t USBD_AUDIO_GetControlSelectorFromChangeId(uint32_t change_id)
+{
+  return (change_id & 1) ? AUDIO_CONTROL_VOLUME : AUDIO_CONTROL_MUTE;
+}
 
 static uint8_t USBD_AUDIO_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
@@ -373,15 +399,15 @@ static uint8_t USBD_AUDIO_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
     /* Open EP IN for control status interrupt */
     if (pdev->dev_speed == USBD_SPEED_HIGH)
     {
-      pdev->ep_in[ep & 0xFU].bInterval = AUDIO_HS_BINTERVAL;
+      pdev->ep_in[ep & 0xFU].bInterval = 0x08;
     }
     else /* LOW and FULL-speed endpoints */
     {
-      pdev->ep_in[ep & 0xFU].bInterval = AUDIO_FS_BINTERVAL;
+      pdev->ep_in[ep & 0xFU].bInterval = 0x03;
     }
 
     /* Open EP OUT */
-    (void)USBD_LL_OpenEP(pdev, ep, USBD_EP_TYPE_INTR, 2);
+    (void)USBD_LL_OpenEP(pdev, ep, USBD_EP_TYPE_INTR, 6);
     pdev->ep_in[ep & 0xFU].is_used = 1U;
   }
 
@@ -492,34 +518,34 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *
   switch (req->bmRequest & USB_REQ_TYPE_MASK)
   {
     case USB_REQ_TYPE_CLASS:
-      switch (req->bRequest)
+      if (req->bmRequest & 0x80)
       {
-        case AUDIO_REQ_GET_CUR:
-        case AUDIO_REQ_GET_MIN:
-        case AUDIO_REQ_GET_MAX:
-        case AUDIO_REQ_GET_RES:
-          AUDIO_REQ_GetControl(pdev, req);
-          break;
+        switch (req->bRequest)
+        {
+          case AUDIO_REQ_CUR:
+          case AUDIO_REQ_RANGE:
+            AUDIO_REQ_GetControl(pdev, req);
+            break;
 
-        case AUDIO_REQ_SET_CUR:
-          AUDIO_REQ_SetCmd(pdev, req);
-          break;
+          default:
+            USBD_CtlError(pdev, req);
+            ret = USBD_FAIL;
+            break;
+        }
+      }
+      else
+      {
+        switch (req->bRequest)
+        {
+          case AUDIO_REQ_CUR:
+            AUDIO_REQ_SetCmd(pdev, req);
+            break;
 
-
-        case AUDIO_REQ_SET_MIN:
-        case AUDIO_REQ_SET_MAX:
-        case AUDIO_REQ_SET_RES:
-          AUDIO_REQ_SetCmd(pdev, req);
-          break;
-
-        case AUDIO_REQ_GET_STAT:
-          USBD_CtlSendData(pdev, haudio->control_tx_data, 0);
-          break;
-
-        default:
-          USBD_CtlError(pdev, req);
-          ret = USBD_FAIL;
-          break;
+          default:
+            USBD_CtlError(pdev, req);
+            ret = USBD_FAIL;
+            break;
+        }
       }
       break;
 
@@ -682,7 +708,7 @@ static uint8_t USBD_AUDIO_EP0_RxReady(USBD_HandleTypeDef *pdev)
   USBD_AUDIO_HandleTypeDef *haudio = (USBD_AUDIO_HandleTypeDef *)pdev->pClassDataCmsit[pdev->classId];
   uint8_t unit_id = HIBYTE(haudio->control_req.wIndex);
 
-  if (haudio->control_req.bRequest == AUDIO_REQ_SET_CUR)
+  if (haudio->control_req.bRequest == AUDIO_REQ_CUR)
   {
     /* In this driver, to simplify code, only SET_CUR request is managed */
     uint16_t value = 0;
@@ -845,13 +871,19 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef *pdev)
   }
 
   // If an USB Interrupt is not in progress and a USB control value changed, send a USB interrupt to the USB Host
-  uint16_t unit_id_change_bitmask = usb_audio_notify_unit_id_change;
-  if (!usb_audio_notify_in_progress_data && unit_id_change_bitmask)
+  uint32_t unit_id_change_bitmask = usb_audio_notify_unit_id_change;
+  if (!usb_audio_notify_in_progress_data.wIndex && unit_id_change_bitmask)
   {
-    uint8_t unit_id = 31 - __builtin_clz(unit_id_change_bitmask);
-    usb_audio_notify_unit_id_change &= ~(1 << unit_id);
-    // bStatusType (lower byte) = bit7 (interrupt pending) and bit0-3 == 0 (audio control interface)
-    usb_audio_notify_in_progress_data = (unit_id << 8) | (1 << 7) | (0 << 0);
+    uint32_t change_id = 31 - __builtin_clz(unit_id_change_bitmask);
+    usb_audio_notify_unit_id_change &= ~(1 << change_id);
+
+    uint32_t unit_id = USBD_AUDIO_GetUnitIdFromChangeId(change_id);
+    uint32_t control_selector = USBD_AUDIO_GetControlSelectorFromChangeId(change_id);
+
+    usb_audio_notify_in_progress_data.bInfo = 0;
+    usb_audio_notify_in_progress_data.bAttribute = AUDIO_REQ_CUR;
+    usb_audio_notify_in_progress_data.wValue = (control_selector << 8);
+    usb_audio_notify_in_progress_data.wIndex = (unit_id << 8) | AUDIO_CONTROL_INTERFACE_ID;
     USBD_LL_Transmit(pdev, AUDIO_INTERRUPT_EP, (uint8_t *)&usb_audio_notify_in_progress_data, sizeof(usb_audio_notify_in_progress_data));
   }
 
@@ -1106,7 +1138,7 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
   {
     // USB Interrupt completed, reset to 0 so we are
     // ready for a new interrupt transfer.
-    usb_audio_notify_in_progress_data = 0;
+    usb_audio_notify_in_progress_data.wIndex = 0;
   }
   else
   {
@@ -1287,12 +1319,12 @@ static void AUDIO_REQ_GetControl(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef 
 
   (void)USBD_memset(haudio->control_tx_data, 0, USB_MAX_EP0_SIZE);
 
-  uint16_t value = DAMC_getControlFromUSB(HIBYTE(req->wIndex), HIBYTE(req->wValue), LOBYTE(req->wValue), req->bRequest);
+  size_t valueSize = DAMC_getControlFromUSB(HIBYTE(req->wIndex), HIBYTE(req->wValue), LOBYTE(req->wValue), req->bRequest, haudio->control_tx_data);
 
-  memcpy(haudio->control_tx_data, &value, sizeof(value));
+  assert(valueSize < USB_MAX_EP0_SIZE);
 
   /* Send the current mute state */
-  (void)USBD_CtlSendData(pdev, haudio->control_tx_data, MIN(req->wLength, USB_MAX_EP0_SIZE));
+  (void)USBD_CtlSendData(pdev, haudio->control_tx_data, MIN(req->wLength, valueSize));
 }
 
 /**
@@ -1314,7 +1346,7 @@ static void AUDIO_REQ_SetCmd(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req
 
   if (req->wLength != 0U)
   {
-    haudio->ep0_data_endpoint = USBD_AUDIO_getDataFromUnitId(haudio, HIBYTE(req->wIndex));
+    haudio->ep0_data_endpoint = USBD_AUDIO_getDataFromUnitId(HIBYTE(req->wIndex));
     haudio->control_req = *req;
 
     haudio->control_req.wLength = MIN(req->wLength, USB_MAX_EP0_SIZE);
@@ -1352,11 +1384,6 @@ static void *USBD_AUDIO_GetAudioHeaderDesc(uint8_t *pConfDesc)
     }
   }
   return pAudioDesc;
-}
-
-void USBD_AUDIO_NotifyUnitIdChanged(uint8_t unit_id)
-{
-  usb_audio_notify_unit_id_change |= 1 << unit_id;
 }
 
 // Return true when the audio stream is started and stable and we are

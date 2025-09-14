@@ -51,9 +51,10 @@ void DAMC_setControlFromUSB(
 	    unit_id, control_selector, channel, bRequest, value);
 }
 
-uint16_t DAMC_getControlFromUSB(uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest) {
+size_t DAMC_getControlFromUSB(
+    uint8_t unit_id, uint8_t control_selector, uint8_t channel, uint8_t bRequest, uint8_t* data) {
 	return AudioProcessor::getInstance()->getControls()->getControlFromUSB(
-	    unit_id, control_selector, channel, bRequest);
+	    unit_id, control_selector, channel, bRequest, data);
 }
 
 static void DAMC_checkAudioInterruptLost() {
