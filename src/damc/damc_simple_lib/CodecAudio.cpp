@@ -25,7 +25,7 @@ void CodecAudio::start() {
 
 volatile uint32_t diff_dma_out;
 void CodecAudio::processAudioInterleavedOutput(const CodecFrame* data_input, size_t nframes) {
-	uint16_t dma_read_offset = getDMAPos();
+	uint16_t dma_read_offset = getDMAOutPos();
 	uint32_t availableForDma = codecBuffers.out_buffer.getAvailableReadForDMA(dma_read_offset);
 	diff_dma_out = availableForDma;
 
@@ -65,7 +65,20 @@ void CodecAudio::processAudioInterleavedInput(CodecFrame* data_output, size_t nf
 uint32_t CodecAudio::getDMAPos() {
 	uint32_t dma_pos;
 
-	dma_pos = codecHardwareInterface->getDmaRemainingCount();
+	dma_pos = codecHardwareInterface->getDmaIn()->getDmaRemainingCount();
+
+	if(dma_pos == 0) {
+		return 0;
+	}
+
+	uint16_t dma_read_offset = codecBuffers.in_buffer.getCount() - ((dma_pos + 1) / 2);
+	return dma_read_offset;
+}
+
+uint32_t CodecAudio::getDMAOutPos() {
+	uint32_t dma_pos;
+
+	dma_pos = codecHardwareInterface->getDmaOut()->getDmaRemainingCount();
 
 	if(dma_pos == 0) {
 		return 0;
@@ -76,7 +89,7 @@ uint32_t CodecAudio::getDMAPos() {
 }
 
 bool CodecAudio::isAudioProcessingInterruptPending(bool insertWaitStates) {
-	return codecHardwareInterface->isDMAIsrFlagSet(insertWaitStates);
+	return codecHardwareInterface->getDmaIn()->isDMAIsrFlagSet(insertWaitStates);
 }
 
 void CodecAudio::setMicBias(bool enable) {

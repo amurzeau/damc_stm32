@@ -1,17 +1,17 @@
-#include "CodecHardwareInterface.h"
+#include "CodecDmaPosition.h"
 #include <stdlib.h>
 
-void CodecHardwareInterface::setPeripherals(DMAStreamType* DMAStreamInstance,
-                                            SAI_Block_TypeDef* SAIInstance,
-                                            volatile uint32_t* DMAInstanceISR,
-                                            uint32_t DMAStreamIndex) {
+void CodecDmaPosition::setPeripherals(DMAStreamType* DMAStreamInstance,
+                                      SAI_Block_TypeDef* SAIInstance,
+                                      volatile uint32_t* DMAInstanceISR,
+                                      uint32_t DMAStreamIndex) {
 	this->DMAStreamInstance = DMAStreamInstance;
 	this->DMAInstanceISR = DMAInstanceISR;
 	this->SAIInstance = SAIInstance;
 	this->DMAStreamIndex = DMAStreamIndex;
 }
 
-uint16_t CodecHardwareInterface::getDmaRemainingCount(void) {
+uint16_t CodecDmaPosition::getDmaRemainingCount(void) {
 #ifdef STM32F723xx
 	return DMAStreamInstance->NDTR;
 #else
@@ -19,7 +19,7 @@ uint16_t CodecHardwareInterface::getDmaRemainingCount(void) {
 #endif
 }
 
-bool CodecHardwareInterface::isDMAIsrFlagSet(bool insertWaitStates) {
+bool CodecDmaPosition::isDMAIsrFlagSet(bool insertWaitStates) {
 	if(insertWaitStates) {
 		// Do a dummy read from the SAI peripheral
 		(void) SAIInstance->SR;

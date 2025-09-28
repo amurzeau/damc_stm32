@@ -42,10 +42,15 @@ bool CodecDamcHATInit::isAvailable() {
 void CodecDamcHATInit::start(void* inBuffer, void* outBuffer, size_t size_bytes) {
 	init_audio();
 
-	setPeripherals(hsai_rx.hdmarx->Instance,
-	               hsai_rx.Instance,
-	               (volatile uint32_t*) hsai_rx.hdmarx->StreamBaseAddress,
-	               hsai_rx.hdmarx->StreamIndex);
+	setDmaIn(hsai_rx.hdmarx->Instance,
+	         hsai_rx.Instance,
+	         (volatile uint32_t*) hsai_rx.hdmarx->StreamBaseAddress,
+	         hsai_rx.hdmarx->StreamIndex);
+
+	setDmaOut(hsai_tx.hdmatx->Instance,
+	          hsai_tx.Instance,
+	          (volatile uint32_t*) hsai_tx.hdmatx->StreamBaseAddress,
+	          hsai_tx.hdmatx->StreamIndex);
 
 	startRxDMA(inBuffer, size_bytes);
 	startTxDMA(outBuffer, size_bytes);

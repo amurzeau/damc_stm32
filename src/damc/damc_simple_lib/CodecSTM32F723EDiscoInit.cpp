@@ -10,10 +10,15 @@ void CodecSTM32F723EDiscoInit::start(void* inBuffer, void* outBuffer, size_t siz
 
 	init_codec();
 
-	setPeripherals(haudio_in_sai.hdmarx->Instance,
-	               haudio_in_sai.Instance,
-	               (volatile uint32_t*) haudio_in_sai.hdmarx->StreamBaseAddress,
-	               haudio_in_sai.hdmarx->StreamIndex);
+	setDmaIn(haudio_in_sai.hdmarx->Instance,
+	         haudio_in_sai.Instance,
+	         (volatile uint32_t*) haudio_in_sai.hdmarx->StreamBaseAddress,
+	         haudio_in_sai.hdmarx->StreamIndex);
+
+	setDmaOut(haudio_out_sai.hdmatx->Instance,
+	          haudio_out_sai.Instance,
+	          (volatile uint32_t*) haudio_out_sai.hdmatx->StreamBaseAddress,
+	          haudio_out_sai.hdmatx->StreamIndex);
 
 	startRxDMA(inBuffer, size_bytes);
 	startTxDMA(outBuffer, size_bytes);
@@ -128,7 +133,8 @@ void CodecSTM32F723EDiscoInit::start(void* inBuffer, void* outBuffer, size_t siz
 
 	init_codec();
 
-	setPeripherals(haudio_in_sai.hdmarx->Instance, haudio_in_sai.Instance, &haudio_in_sai.hdmarx->Instance->CSR, 0);
+	setDmaIn(haudio_in_sai.hdmarx->Instance, haudio_in_sai.Instance, &haudio_in_sai.hdmarx->Instance->CSR, 0);
+	setDmaOut(haudio_out_sai.hdmatx->Instance, haudio_out_sai.Instance, &haudio_out_sai.hdmatx->Instance->CSR, 0);
 
 	startRxDMA(inBuffer, size_bytes);
 	startTxDMA(outBuffer, size_bytes);

@@ -19,6 +19,4 @@ public:
 
 	void startTxDMA(void* buffer, size_t size_bytes);
 	void startRxDMA(void* buffer, size_t size_bytes);
-
-private:
 };

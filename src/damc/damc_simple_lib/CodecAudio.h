@@ -39,6 +39,8 @@ protected:
 	void writeOutBuffer(const uint32_t* data, size_t word_size);
 	void readInBuffer(uint32_t* data, size_t word_size);
 
+	uint32_t getDMAOutPos();
+
 private:
 	struct CodecBuffers {
 		CircularBuffer<CodecFrame, 2, true> out_buffer;
