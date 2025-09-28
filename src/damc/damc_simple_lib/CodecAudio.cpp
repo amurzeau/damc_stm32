@@ -71,7 +71,7 @@ uint32_t CodecAudio::getDMAPos() {
 		return 0;
 	}
 
-	uint16_t dma_read_offset = codecBuffers.out_buffer.getCount() - ((dma_pos + 1) / 2);
+	uint16_t dma_read_offset = codecBuffers.in_buffer.getCount() - ((dma_pos + 1) / 2);
 	return dma_read_offset;
 }
 

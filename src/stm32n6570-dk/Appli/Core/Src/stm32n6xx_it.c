@@ -236,19 +236,19 @@ void USB1_OTG_HS_IRQHandler(void)
 void GPDMA1_Channel2_IRQHandler(void)
 {
   // TX
-  // Only monitor cpu usage on TX DMA interrupt
-  DAMC_beginMeasure(TMI_AudioProcessing);
-  // Reset buffer processed flags before the DMA interrupt is cleared.
-  DAMC_resetBufferProcessedFlags();
-  __DMB();
   BSP_AUDIO_OUT_IRQHandler(0, 0);
-  DAMC_endMeasure(TMI_AudioProcessing);
 }
 
 void GPDMA1_Channel1_IRQHandler(void)
 {
   // RX
+  // Only monitor cpu usage on RX DMA interrupt
+  DAMC_beginMeasure(TMI_AudioProcessing);
+  // Reset buffer processed flags before the DMA interrupt is cleared.
+  DAMC_resetBufferProcessedFlags();
+  __DMB();
   BSP_AUDIO_IN_IRQHandler(0, 0);
+  DAMC_endMeasure(TMI_AudioProcessing);
 }
 
 // TS_INT IRQ

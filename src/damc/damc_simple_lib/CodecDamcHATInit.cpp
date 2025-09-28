@@ -42,10 +42,10 @@ bool CodecDamcHATInit::isAvailable() {
 void CodecDamcHATInit::start(void* inBuffer, void* outBuffer, size_t size_bytes) {
 	init_audio();
 
-	setPeripherals(hsai_tx.hdmatx->Instance,
-	               hsai_tx.Instance,
-	               (volatile uint32_t*) hsai_tx.hdmatx->StreamBaseAddress,
-	               hsai_tx.hdmatx->StreamIndex);
+	setPeripherals(hsai_rx.hdmarx->Instance,
+	               hsai_rx.Instance,
+	               (volatile uint32_t*) hsai_rx.hdmarx->StreamBaseAddress,
+	               hsai_rx.hdmarx->StreamIndex);
 
 	startRxDMA(inBuffer, size_bytes);
 	startTxDMA(outBuffer, size_bytes);
@@ -120,8 +120,9 @@ void CodecDamcHATInit::init_sai() {
 	HAL_DMA_Init(&hdma_tx);
 
 	/* SAI DMA IRQ Channel configuration */
-	HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0x0E, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+	// No need for IRQ for RX
+	// HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0x0E, 0);
+	// HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 
 	/* DMA SAI1 RX */
 
@@ -152,9 +153,8 @@ void CodecDamcHATInit::init_sai() {
 	HAL_DMA_Init(&hdma_rx);
 
 	/* SAI DMA IRQ Channel configuration */
-	// No need for IRQ for RX
-	// HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 0x0E, 0);
-	// HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
+	HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 0x0E, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
 
 	/* SAI1 */
 

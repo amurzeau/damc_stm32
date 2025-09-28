@@ -29,7 +29,7 @@ void UsbAudioBuffer::resetBufferProcessedFlagFromAudio() {
  *          |        /                 |        /
  *          |    /                     |    /
  * 12       |/                         |/
- * DMAOutPos
+ * DMAInPos
  *  48                            / |                        / |
  *                            /     |                    /     |
  *                        /         |                /         |
@@ -50,7 +50,7 @@ void UsbAudioBuffer::resetBufferProcessedFlagFromAudio() {
  *               /                 |        /                 |
  *           /                     |    /                     |
  * 60    /                         |/                         |/
- * DMAOutPos
+ * DMAInPos
  *  48                            / |                        / |
  *                            /     |                    /     |
  *                        /         |                /         |
@@ -76,7 +76,7 @@ void UsbAudioBuffer::resetBufferProcessedFlagFromAudio() {
  *          |        /                                                  |    /               |      /
  * 28       |    /                                                      |/                   |  /
  * 20       |/                                                                               /
- * DMAOutPos
+ * DMAInPos
  *  48                            / |                        / |                        / |                        / |
  *                            /     |                    /     |                    /     |                    /     |
  *                        /         |                /         |                /         |                /         |
@@ -86,7 +86,7 @@ void UsbAudioBuffer::resetBufferProcessedFlagFromAudio() {
  *   0   _/                         |/                         |/                         |/                         |
  *       |  R                       |                          |  R    R                  |  R                       |
  *
- * usbBuffers converted in DMAOutPos domain + 16 (margin)
+ * usbBuffers converted in DMAInPos domain + 16 (margin)
  * 84                                                                 /|
  * 76                                                              /   |
  * 68                                                           /      |
@@ -101,7 +101,7 @@ void UsbAudioBuffer::resetBufferProcessedFlagFromAudio() {
  */
 int32_t UsbAudioBuffer::adjustUsbBufferAvailableForCurrentProcessingPeriodFromUSB(bool inReset, int32_t usb_buffering) {
 	// Note: DMA ISR is cleared after usbBuffers.resetBufferProcessedFlag is called
-	// in AUDIO_OUT_SAIx_DMAx_IRQHandler().
+	// in AUDIO_IN_SAIx_DMAx_IRQHandler().
 	// This function is called from USB interrupt, so DMA ISR can't preempt this function.
 	// This means we need to check the buffer processed flag before, then the DMA ISR flag
 	// To ensure that when reading usbBuffers flag and available samples
@@ -133,8 +133,8 @@ int32_t UsbAudioBuffer::adjustUsbBufferAvailableForCurrentProcessingPeriodFromUS
 	else
 		buffer_processed = buffer.isBufferWritten();
 
-	// Always use DMAOutPos even for IN endpoint as the audio processing period is defined by the DMA Out interrupts.
-	// DMA In is in sync with DMA Out and is a the same position.
+	// Always use DMAInPos even for IN endpoint as the audio processing period is defined by the DMA In interrupts.
+	// DMA Out is in sync with DMA In and is a the same position.
 	uint32_t dma_pos = CodecAudio::instance.getDMAPos() % 48;
 
 	// When dma_pos == 0, we need to do a dummy SAI peripheral read to ensure the

@@ -130,28 +130,30 @@ static void DAMC_processAudioFromDMAInterrupt() {
 }
 
 /**
- * @brief Tx Transfer Half completed callback.
+ * @brief Rx Transfer Half completed callback.
  * @param  hsai pointer to a SAI_HandleTypeDef structure that contains
  *                the configuration information for SAI module.
  * @retval None
  */
 #ifdef STM32F723xx
-extern "C" void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
+extern "C" void BSP_AUDIO_IN_HalfTransfer_CallBack(void) {
 #else
-extern "C" void BSP_AUDIO_OUT_HalfTransfer_CallBack(uint32_t Instance) {
+extern "C" void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
 #endif
+	// Process audio on RX DMA interrupt to ensure both DMA have completed their half transfer.
+	// TX DMA is ahead of RX DMA due to FIFO in DMA and SAI.
 	DAMC_processAudioFromDMAInterrupt();
 }
 /**
- * @brief Tx Transfer second Half completed callback.
+ * @brief Rx Transfer second Half completed callback.
  * @param  hsai pointer to a SAI_HandleTypeDef structure that contains
  *                the configuration information for SAI module.
  * @retval None
  */
 #ifdef STM32F723xx
-extern "C" void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
+extern "C" void BSP_AUDIO_IN_TransferComplete_CallBack(void) {
 #else
-extern "C" void BSP_AUDIO_OUT_TransferComplete_CallBack(uint32_t Instance) {
+extern "C" void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
 #endif
 	DAMC_processAudioFromDMAInterrupt();
 }
