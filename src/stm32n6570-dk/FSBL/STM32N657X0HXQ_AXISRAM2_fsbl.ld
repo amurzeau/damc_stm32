@@ -80,6 +80,7 @@ SECTIONS
     *(.text.SCB_DisableDCache)
     *(.text.BOOT_GetApplicationVectorTable)
     *(.text.BOOT_GetApplicationSize)
+    *(.text.HAL_IncTick)
     *(.RamFunc)        /* .RamFunc sections */
     *(.RamFunc*)       /* .RamFunc* sections */
 
