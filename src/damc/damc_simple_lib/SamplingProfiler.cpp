@@ -42,13 +42,14 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 	uint32_t psr;
 	const uint32_t* preempted_sp = sp;
 	const uint32_t* default_context;
+	bool hasAdditionalState = false;
 
 #ifdef STM32N657xx
 	// Check EXC_RETURN.DCRS
-	bool hasAdditionalState = irq_lr.S && (!irq_lr.ES || !irq_lr.DCRS);
-	if(hasAdditionalState) {
+	if(irq_lr.S && (!irq_lr.ES || !irq_lr.DCRS)) {
 		// Additional state context saved
 		preempted_sp += 10;
+		hasAdditionalState = true;
 	}
 #endif
 
