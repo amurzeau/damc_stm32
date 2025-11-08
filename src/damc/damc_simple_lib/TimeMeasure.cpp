@@ -3,6 +3,22 @@
 #include <main.h>
 #include <string.h>
 
+/**
+ * CPU measures "weirdness":
+ *
+ * USB Interrupt cpu usage per 1ms can jump to higher values sometimes.
+ * This is because as the USB clock is not synchronous to the audio clock, sometimes there will be 2 USB audio transfer
+ * in one audio period when USB clock is faster. This will lead to temporary higher CPU usage in USB interrupt per audio
+ * period.
+ *
+ * At high CPU usage near 100%, audio cpu usage per 1ms might be > 100%.
+ * This is because when handling the DMA interrupt,
+ * the HAL_DMA_IRQHandler might first handle the HT (half transfer complete) flag
+ * then the TC flag is is while processing audio before the DMA handler continues and it will also see the TC flag set
+ * within the same handler call. This means there will be 2 audio processing within the same IRQ and within the same
+ * begin/end measure of AudioInterrupt.
+ */
+
 #ifdef STM32F723xx
 #include <stm32f7xx.h>
 #include <stm32f7xx_hal_gpio.h>
