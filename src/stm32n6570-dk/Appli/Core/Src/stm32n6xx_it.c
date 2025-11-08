@@ -25,6 +25,7 @@
 #include "AudioCApi.h"
 #include <stm32n6570_discovery_ts.h>
 #include <stm32n6570_discovery_audio.h>
+#include "SamplingProfiler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,6 +61,8 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
+
+#define NMI_Handler NMI_Handler_rerouted
 
 /* USER CODE END EV */
 
@@ -217,6 +220,38 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /* USER CODE BEGIN 1 */
+
+#undef NMI_Handler
+
+__attribute__((naked)) void NMI_Handler(void)
+{
+  // To trigger NMI: SCB->ICSR |= SCB_ICSR_NMIPENDSET_Msk;
+  // This is done using STLink probe
+  // Find the original stack pointer in a naked function to ensure the compiler doesn't use the stack for local
+  // variables. The real ISR handle is then called with the stack pointer value as argument
+  asm("tst lr, #4\n"         // Test for MSP or PSP
+      "ite eq\n"             // If equal
+      "mrseq r0, msp\n"      //  r0 = msp
+      "mrsne r0, psp\n"      // else r0 = psp
+      "push {r4-r12, lr}\n"  // Save all additional registers
+      ".cfi_def_cfa_offset 40\n"
+      ".cfi_offset 14, -4\n"
+      ".cfi_offset 11, -12\n"
+      ".cfi_offset 10, -16\n"
+      ".cfi_offset 9, -20\n"
+      ".cfi_offset 8, -24\n"
+      ".cfi_offset 7, -28\n"
+      ".cfi_offset 6, -32\n"
+      ".cfi_offset 5, -36\n"
+      ".cfi_offset 4, -40\n"
+      "mov r1, sp\n"                      // r1 = sp
+      "bl %[SAMPLINGPROFILER_capture]\n"  // Call real handler
+      "pop {r4-r12, pc}\n"
+      :                                                           // output
+      : [SAMPLINGPROFILER_capture] "i"(SAMPLINGPROFILER_capture)  // input
+      : "r0", "r1"                                                // clobber
+  );
+}
 
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 

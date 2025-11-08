@@ -19,28 +19,56 @@ __attribute__((used)) uint32_t sp_cond;
 
 extern uint8_t _estack;
 
+union EXC_RETURN {
+	uint32_t raw;
+	struct {
+		uint32_t ES : 1;
+		uint32_t reserverd1 : 1;
+		uint32_t SPSEL : 1;
+		uint32_t mode : 1;
+		uint32_t FPType : 1;
+		uint32_t DCRS : 1;
+		uint32_t S : 1;
+		uint32_t reserved2 : 25;
+	};
+};
+
 void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 	uint32_t timestamp = TIM2->CNT;
 
 	uint32_t i;
 
-	uint32_t irq_lr = current_sp[9];
-	uint32_t psr = sp[7];
-	const uint32_t* preempted_sp;
+	EXC_RETURN irq_lr = {current_sp[9]};
+	uint32_t psr;
+	const uint32_t* preempted_sp = sp;
+	const uint32_t* default_context;
 
-	if(irq_lr & (1 << 4)) {
-		// No FPU context saved
-		preempted_sp = sp + 8;
-	} else {
-		// FPU context saved
-		preempted_sp = sp + 26;
+#ifdef STM32N657xx
+	// Check EXC_RETURN.DCRS
+	bool hasAdditionalState = irq_lr.S && (!irq_lr.ES || !irq_lr.DCRS);
+	if(hasAdditionalState) {
+		// Additional state context saved
+		preempted_sp += 10;
 	}
+#endif
+
+	default_context = preempted_sp;
+	psr = preempted_sp[7];
+
+	// Default context
+	preempted_sp += 8;
+
+	if(!irq_lr.FPType) {
+		// FPU context saved
+		preempted_sp += 18;
+	}
+
 	if(psr & (1 << 9)) {
 		// Stack was not 8 bytes aligned
 		preempted_sp++;
 	}
 
-	uint32_t saved_pc = sp[6];
+	uint32_t saved_pc = default_context[6];
 	uint32_t partial_instruction = 0;
 
 	if(((SCB->ID_ISAR[2] >> 8) & 0xf) >= 2) {
@@ -53,7 +81,7 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 
 			bool assume_partial_instruction_done = true;
 
-			uint16_t pc_instruction_16bits = *(uint16_t*) sp[6];
+			uint16_t pc_instruction_16bits = *(uint16_t*) default_context[6];
 
 			if((pc_instruction_16bits >> 9) == 0b1011110) {
 				// POP encoding T1
@@ -103,13 +131,18 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 	if(sampled_callstack_data.callstack_present)
 		return;
 
-	Utils::copy_n(&sampled_callstack_data.registers[0], sp, 4);
-	Utils::copy_n(&sampled_callstack_data.registers[4], current_sp, 9);
+	Utils::copy_n(&sampled_callstack_data.registers[0], default_context, 4);
+	if(hasAdditionalState) {
+		Utils::copy_n(&sampled_callstack_data.registers[4], &sp[2], 8);
+		sampled_callstack_data.registers[12] = default_context[4];
+	} else {
+		Utils::copy_n(&sampled_callstack_data.registers[4], current_sp, 9);
+	}
 	sampled_callstack_data.registers[13] = (uint32_t) preempted_sp;
-	sampled_callstack_data.registers[14] = sp[5];     // lr
+	sampled_callstack_data.registers[14] = default_context[5];  // lr
 	sampled_callstack_data.registers[15] = saved_pc;  // pc
 	if(partial_instruction)
-		sampled_callstack_data.original_pc = sp[6];
+		sampled_callstack_data.original_pc = default_context[6];
 	else
 		sampled_callstack_data.original_pc = 0;
 
