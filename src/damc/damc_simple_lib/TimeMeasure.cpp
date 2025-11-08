@@ -68,6 +68,7 @@ TimeMeasure::TimeMeasure()
       time_sum_between_reset(0),
       time_sum(0),
       time_sum_per_loop(0),
+      time_sum_previous_loop(0),
       time_max(0),
       begin_time(0),
       isMeasuring(false) {
@@ -137,6 +138,8 @@ void TimeMeasure::endOfProcessingLoop(uint32_t loopDurationUs) {
 
 	time = time * 1000 / loopDurationUs;
 
+	time_sum_previous_loop = time;
+
 	if(time > time_max)
 		time_max = time;
 }
@@ -171,6 +174,17 @@ uint32_t TimeMeasure::getMaxUsagePerLoop1000AndReset() {
 	uint32_t measure = atomicReadReset(&time_max, &current_time);
 
 	return measure;
+}
+
+uint32_t TimeMeasure::getMaxUsagePerLoop1000() {
+	uint32_t value;
+
+	__disable_irq();
+	value = time_sum_previous_loop;
+	time_sum_previous_loop = 0;
+	__enable_irq();
+
+	return value;
 }
 
 uint32_t TimeMeasure::getOnGoingDuration() {

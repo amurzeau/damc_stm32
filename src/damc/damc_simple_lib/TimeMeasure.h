@@ -19,7 +19,7 @@ public:
 
 	uint32_t getCumulatedTimeUsAndReset();
 	uint32_t getMaxUsagePerLoop1000AndReset();
-	uint32_t getMaxUsagePerLoop1000() { return time_max; }
+	uint32_t getMaxUsagePerLoop1000();
 	uint32_t getOnGoingDuration();
 
 	static TimeMeasure timeMeasure[TMI_NUMBER];
@@ -33,6 +33,7 @@ private:
 	uint32_t time_sum_between_reset;
 	uint32_t time_sum;
 	uint32_t time_sum_per_loop;
+	uint32_t time_sum_previous_loop;
 	uint32_t time_max;
 	uint32_t begin_time;
 	bool isMeasuring;
