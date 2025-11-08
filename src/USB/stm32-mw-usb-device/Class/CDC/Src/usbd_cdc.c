@@ -160,9 +160,9 @@ USBD_ClassTypeDef USBD_CDC = {
 #endif /* USE_USBD_COMPOSITE  */
 };
 
-static uint8_t CDCInEpAdd = CDC_IN_EP;
-static uint8_t CDCOutEpAdd = CDC_OUT_EP;
-static uint8_t CDCCmdEpAdd = CDC_CMD_EP;
+static const uint8_t CDCInEpAdd = CDC_IN_EP;
+static const uint8_t CDCOutEpAdd = CDC_OUT_EP;
+static const uint8_t CDCCmdEpAdd = CDC_CMD_EP;
 
 /**
   * @}
@@ -179,7 +179,7 @@ static uint8_t CDCCmdEpAdd = CDC_CMD_EP;
   * @param  cfgidx: Configuration index
   * @retval status
   */
-static USBD_CDC_HandleTypeDef hcdcData;
+static USBD_CDC_HandleTypeDef hcdcData __attribute__((section(".dtcm")));
 static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   UNUSED(cfgidx);

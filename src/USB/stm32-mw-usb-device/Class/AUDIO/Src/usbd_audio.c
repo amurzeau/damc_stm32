@@ -267,8 +267,8 @@ static USBD_AUDIO_LoopbackDataTypeDef *USBD_AUDIO_getDataFromUnitId(uint8_t unit
   * @param  cfgidx: Configuration index
   * @retval status
   */
-USBD_AUDIO_LoopbackDataTypeDef usb_audio_endpoint_out_data[AUDIO_OUT_NUMBER];
-USBD_AUDIO_LoopbackDataTypeDef usb_audio_endpoint_in_data[AUDIO_IN_NUMBER];
+USBD_AUDIO_LoopbackDataTypeDef usb_audio_endpoint_out_data[AUDIO_OUT_NUMBER] __attribute__((section(".dtcm")));
+USBD_AUDIO_LoopbackDataTypeDef usb_audio_endpoint_in_data[AUDIO_IN_NUMBER] __attribute__((section(".dtcm")));
 static uint32_t usb_audio_notify_unit_id_change;
 
 struct USBD_AUDIO_InterruptData
@@ -280,7 +280,7 @@ struct USBD_AUDIO_InterruptData
 };
 static_assert(sizeof(struct USBD_AUDIO_InterruptData) == 6, "USB Audio Class v2 require 6 bytes per interrupt");
 
-static struct USBD_AUDIO_InterruptData usb_audio_notify_in_progress_data;
+static struct USBD_AUDIO_InterruptData usb_audio_notify_in_progress_data __attribute__((section(".dtcm")));
 
 static volatile uint32_t *SCB_DEMCR = (volatile uint32_t *)0xE000EDFC;  //address of the register
 
@@ -302,7 +302,7 @@ uint32_t USBD_AUDIO_GetControlSelectorFromChangeId(uint32_t change_id)
 static uint8_t USBD_AUDIO_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   UNUSED(cfgidx);
-  static USBD_AUDIO_HandleTypeDef haudioData;
+  static USBD_AUDIO_HandleTypeDef haudioData __attribute__((section(".dtcm")));
   USBD_AUDIO_HandleTypeDef *haudio;
 
   /* Allocate Audio structure */

@@ -525,7 +525,7 @@ __ALIGN_BEGIN static uint8_t USBD_COMPOSITE_DeviceQualifierDesc[USB_LEN_DEV_QUAL
   0x00, /* bDeviceSubClass */
 };
 
-static enum USBD_COMPOSITE_ClassId interface_mapping[] = {
+static const enum USBD_COMPOSITE_ClassId interface_mapping[] = {
   [0] = CI_CDCClass,
   [1] = CI_CDCClass,
   [2] = CI_AudioClass,
@@ -539,7 +539,7 @@ static enum USBD_COMPOSITE_ClassId interface_mapping[] = {
   [10] = CI_AudioClass,
 };
 
-static enum USBD_COMPOSITE_ClassId endpoint_mapping[] = {
+static const enum USBD_COMPOSITE_ClassId endpoint_mapping[] = {
   [1] = CI_CDCClass,
   [2] = CI_CDCClass,
   [3] = CI_AudioClass,
@@ -592,7 +592,7 @@ static enum USBD_COMPOSITE_ClassId endpoint_mapping[] = {
   */
 static uint8_t USBD_COMPOSITE_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
-  static USBD_COMPOSITE_HandleTypeDef handleData;
+  static USBD_COMPOSITE_HandleTypeDef handleData __attribute__((section(".dtcm")));
   USBD_COMPOSITE_HandleTypeDef *handle;
 
   handle = &handleData;
