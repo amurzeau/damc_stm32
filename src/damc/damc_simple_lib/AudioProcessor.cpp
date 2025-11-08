@@ -1,5 +1,6 @@
 #include "AudioProcessor.h"
 #include "OscSerialClient.h"
+#include "StackMeasure.h"
 #include "TimeMeasure.h"
 #include "Utils.h"
 #include <CodecAudio.h>
@@ -68,6 +69,7 @@ AudioProcessor::AudioProcessor(uint32_t numChannels, uint32_t sampleRate, size_t
       controls(&oscRoot),
       cpuFrequencyScaling(&oscRoot),
       glitchDetection(&oscRoot) {
+	STACKMEASURE_init();
 	serialClient.init();
 	controls.init();
 	oscStatePersist.init();
@@ -296,10 +298,10 @@ void AudioProcessor::onSlowTimer(uv_timer_t* handle) {
 			}
 			break;
 		case 2:
-			uint32_t used_fast_memory = static_cast<int32_t>((uint32_t) &_end - (uint32_t) &__fast_ram_start);
+			uint32_t used_fast_memory = STACKMEASURE_getUsedSize();
 			thisInstance->fastMemoryUsed.set(used_fast_memory);
 
-			uint32_t available_fast_memory = static_cast<int32_t>((uint32_t) &__fast_ram_end - (uint32_t) &_end);
+			uint32_t available_fast_memory = STACKMEASURE_getTotalSize() - used_fast_memory;
 			thisInstance->fastMemoryAvailable.set(available_fast_memory);
 
 			struct mallinfo alloc_info = mallinfo();
