@@ -126,7 +126,8 @@ void CPUFrequencyScaling::setAHBDivider(uint32_t divider) {
 	max_cpu_usage_ratio_per_thousand = 0;
 }
 
-const uint32_t CPUFrequencyScaling::CPU_USAGE_MARGIN_AT_MAX_FREQUENCY = 25;
+static const uint32_t CPU_USAGE_MARGIN_AT_MAX_FREQUENCY_DECREASING = 37;
+static const uint32_t CPU_USAGE_MARGIN_AT_MAX_FREQUENCY_INCREASING = 25;
 
 uint32_t CPUFrequencyScaling::getCpuUsageWithLowerSpeed(uint32_t value) {
 	return value * 2;
@@ -397,7 +398,8 @@ void CPUFrequencyScaling::setRawTimerDivider(uint32_t index, uint32_t divider) {
 	uv_async_send(&asyncFrequencyChanged);
 }
 
-const uint32_t CPUFrequencyScaling::CPU_USAGE_MARGIN_AT_MAX_FREQUENCY = 7;
+static const uint32_t CPU_USAGE_MARGIN_AT_MAX_FREQUENCY_DECREASING = 15;
+static const uint32_t CPU_USAGE_MARGIN_AT_MAX_FREQUENCY_INCREASING = 7;
 
 uint32_t CPUFrequencyScaling::getCpuUsageWithLowerSpeed(uint32_t value) {
 	return value * (current_ahb_divider + 1) / current_ahb_divider;
@@ -545,7 +547,10 @@ void CPUFrequencyScaling::updateCpuUsage() {
 		cpu_usage_points = 0;
 	}
 
-	uint32_t current_needed_cpu_usage_room = CPU_USAGE_MARGIN_AT_MAX_FREQUENCY * current_ahb_divider;
+	uint32_t current_needed_cpu_usage_room_decreasing =
+	    CPU_USAGE_MARGIN_AT_MAX_FREQUENCY_DECREASING * current_ahb_divider;
+	uint32_t current_needed_cpu_usage_room_increasing =
+	    CPU_USAGE_MARGIN_AT_MAX_FREQUENCY_INCREASING * current_ahb_divider;
 
 	if(main_loop_task_duration_us > 10000) {
 		// If main loop current task is running so far for more than 10ms, increase CPU frequency to max
@@ -554,13 +559,13 @@ void CPUFrequencyScaling::updateCpuUsage() {
 
 		// We needed to increase the frequency for the main loop, reset wait time before decreasing again
 		cpu_usage_points = 0;
-	} else if(max_cpu_usage_ratio_per_thousand > 900 - current_needed_cpu_usage_room) {
+	} else if(max_cpu_usage_ratio_per_thousand > 900 - current_needed_cpu_usage_room_increasing) {
 		// We are above 90% + 2.5% normalized room cpu usage, increase cpu speed
 		adjustCpuFreq(CpuFreqAdjustement::IncreaseSpeed);
 	} else if(cpu_usage_points >= cpu_usage_points_target &&
 	          (getCpuUsageWithLowerSpeed(max_cpu_usage_ratio_per_thousand) <
-	           850 - getCpuUsageWithLowerSpeed(current_needed_cpu_usage_room))) {
-		// We can divide cpu frequency by 2 while being under 85% cpu usage + 2.5% normalized room and only if main loop
+	           900 - getCpuUsageWithLowerSpeed(current_needed_cpu_usage_room_decreasing))) {
+		// We can divide cpu frequency by 2 while being under 80% cpu usage + 2.5% normalized room and only if main loop
 		// is not active for more than 90% of 1ms period
 		adjustCpuFreq(CpuFreqAdjustement::DecreaseSpeed);
 	}

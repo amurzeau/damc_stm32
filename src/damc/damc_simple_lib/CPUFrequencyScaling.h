@@ -68,6 +68,4 @@ private:
 	uint32_t cpu_usage_points_target;
 
 	uv_async_t asyncFrequencyChanged;
-
-	static const uint32_t CPU_USAGE_MARGIN_AT_MAX_FREQUENCY;
 };
