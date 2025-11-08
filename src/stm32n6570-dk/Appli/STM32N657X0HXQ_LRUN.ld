@@ -42,15 +42,18 @@ MEMORY
   RAM (xrw)  : ORIGIN = 0x342e0000, LENGTH = 896K
 }
 
+_Min_Heap_Size = 128*1024; /* required amount of heap */
+_Min_Stack_Size = 8192; /* required amount of stack */
+
 /* Highest address of the user mode stack */
-_estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
+_estack = ORIGIN(DTCM) + LENGTH(DTCM); /* end of "DTCM" Ram type memory */
 _sstack = _estack - _Min_Stack_Size;
 
-_Min_Heap_Size = 128*1024; /* required amount of heap */
-_Min_Stack_Size = 0x2000; /* required amount of stack */
-
 /* Heap end address */
-__heap_end = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size; /* end of heap Ram type memory */
+__heap_end = ORIGIN(RAM) + LENGTH(RAM); /* end of heap Ram type memory */
+
+__fast_ram_start = ORIGIN(RAM);
+__fast_ram_end = ORIGIN(RAM) + LENGTH(RAM) - _Min_Heap_Size;
 
 /* Sections */
 SECTIONS
@@ -192,22 +195,31 @@ SECTIONS
   /* Uninitialized data section into "RAM" Ram type memory */
   .dtcm (NOLOAD) :
   {
-    . = ALIGN(4);
+    . = ALIGN(32);
+    _sdtcm = .; /* start of DTCM data */
     *(.dtcm)
     *(.dtcm*)
     *(COMMON)
-    . = ALIGN(4);
+    . = ALIGN(32);
+    _edtcm = .; /* start of DTCM data */
   } >DTCM
 
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
-  ._user_heap_stack (NOLOAD) :
+  ._user_stack (NOLOAD) :
+  {
+    . = ALIGN(32);
+    . = . + _Min_Stack_Size;
+    . = ALIGN(8);
+  } >DTCM
+
+  /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
+  ._user_heap (NOLOAD) :
   {
     . = ALIGN(32);
     __heap_start = .; /* start of heap */
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
     . = . + _Min_Heap_Size;
-    . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
 

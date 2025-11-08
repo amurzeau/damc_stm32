@@ -61,7 +61,7 @@ TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
 
-PCD_HandleTypeDef hpcd_USB_OTG_HS1;
+PCD_HandleTypeDef hpcd_USB_OTG_HS1 __attribute__((section(".dtcm")));
 
 /* USER CODE END PV */
 
@@ -388,12 +388,16 @@ static void MX_GPIO_Init(void)
 
 extern uint8_t _stext;
 extern uint8_t _etext;
+extern uint8_t _sstack;
 extern uint8_t _estack;
 extern uint8_t _sromdata;
 extern uint8_t _eromdata;
 extern uint8_t _sdata;
+extern uint8_t _end;
 extern uint8_t __heap_start;
 extern uint8_t __heap_end;
+extern uint8_t _sdtcm;
+extern uint8_t _edtcm;
 void MPU_Config(void)
 {
   MPU_Region_InitTypeDef MPU_InitStruct = {0};
@@ -411,8 +415,11 @@ void MPU_Config(void)
   assert((((uint32_t)&_sromdata) & 31) == 0);
   assert((((uint32_t)&_eromdata) & 31) == 0);
   assert((((uint32_t)&_sdata) & 31) == 0);
+  assert((((uint32_t)&_end) & 31) == 0);
   assert((((uint32_t)&__heap_start) & 31) == 0);
   assert((((uint32_t)&__heap_end) & 31) == 0);
+  assert((((uint32_t)&_sdtcm) & 31) == 0);
+  assert((((uint32_t)&_edtcm) & 31) == 0);
 
   // Ensure no overlap, else MemManage will be triggered on overlapped regions access
   assert((uint32_t)&_etext <= (uint32_t)&_sromdata);
@@ -475,7 +482,7 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number++;
   MPU_InitStruct.BaseAddress = (uint32_t)&_sdata;
-  MPU_InitStruct.LimitAddress = ((((uint32_t)&__heap_start) + 31) & 0xFFFFFFE0) - 1;
+  MPU_InitStruct.LimitAddress = ((((uint32_t)&_end) + 31) & 0xFFFFFFE0) - 1;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
@@ -497,24 +504,24 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 6 (Stack RAM cached) and the memory to be protected
+  /** Initializes and configures the Region 6 (Stack RAM in DTCM) and the memory to be protected
   */
   MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = ((uint32_t)&__heap_end) & 0xFFFFFFE0;
+  MPU_InitStruct.BaseAddress = ((uint32_t)&_sstack) & 0xFFFFFFE0;
   MPU_InitStruct.LimitAddress = (uint32_t)&_estack - 1;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER3;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
   MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_DISABLE;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-
+  
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
   /** Initializes and configures the Region 7 (DTCM RAM not cached) and the memory to be protected
   */
   MPU_InitStruct.Number++;
-  MPU_InitStruct.BaseAddress = 0x2000000;
-  MPU_InitStruct.LimitAddress = 0x2001ffff;
+  MPU_InitStruct.BaseAddress =  (uint32_t)&_sdtcm;
+  MPU_InitStruct.LimitAddress =  (uint32_t)&_edtcm - 1;
   MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER2;
   MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;

@@ -43,15 +43,15 @@ MEMORY
   PSRAM   (xrw)    : ORIGIN = 0x60000000,   LENGTH = 512K
 }
 
-/* Highest address of the user mode stack */
-_estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
-
-_Min_Heap_Size = 0x200; /* required amount of heap */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+_Min_Heap_Size = 128*1024; /* required amount of heap */
+_Min_Stack_Size = 0x1000; /* required amount of stack */
 
 /* Heap start and end addresses in PSRAM */
 __heap_end = ORIGIN(PSRAM) + LENGTH(PSRAM); /* end of "PSRAM" Ram type memory */
 /* __heap_end = _estack - _Min_Stack_Size; */
+
+__fast_ram_start = ORIGIN(RAM);
+__fast_ram_end = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size;
 
 /* Sections */
 SECTIONS
@@ -133,6 +133,28 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  /* Uninitialized data section into "RAM" Ram type memory */
+  .dtcm (NOLOAD) :
+  {
+    . = ALIGN(32);
+    _sdtcm = .; /* start of DTCM data */
+    *(.dtcm)
+    *(.dtcm*)
+    *(COMMON)
+    . = ALIGN(32);
+    _edtcm = .; /* start of DTCM data */
+  } >RAM
+
+  /* User_stack section, used to check that there is enough "RAM" Ram  type memory left */
+  ._user_stack (NOLOAD) :
+  {
+    . = ALIGN(32);
+    _sstack = .;
+    . = . + _Min_Stack_Size;
+    . = ALIGN(32);
+    _estack = .; /* end of stack Ram type memory */
+  } >RAM
+
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
@@ -183,16 +205,6 @@ SECTIONS
     . = . + _Min_Heap_Size;
     . = ALIGN(8);
   } >PSRAM
-
-  /* User_stack section, used to check that there is enough "RAM" Ram type memory left */
-  ._user_stack :
-  {
-    . = ALIGN(8);
-    PROVIDE ( end = . );
-    PROVIDE ( _end = . );
-    . = . + _Min_Stack_Size;
-    . = ALIGN(8);
-  } >RAM
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

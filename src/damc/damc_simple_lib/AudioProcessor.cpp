@@ -273,12 +273,11 @@ void AudioProcessor::onFastTimer(uv_timer_t* handle) {
 		thisInstance->nextTimerStripIndex = 0;
 }
 
-extern "C" uint8_t _sdata;            // start of RAM
-extern "C" uint8_t _end;              // end of static data in RAM (start of heap)
-extern "C" uint8_t _estack;           // start of RAM (end of RAM as stack grows backward)
+extern "C" uint8_t _end;              // end of used global data in RAM (.data and .bss)
+extern "C" uint8_t __fast_ram_start;  // start of fast RAM (used for global data)
+extern "C" uint8_t __fast_ram_end;    // end of fast RAM (used for global data)
 extern "C" uint8_t __heap_start;      // start of PSRAM (heap)
 extern "C" uint8_t __heap_end;        // end of PSRAM (heap)
-extern "C" uint32_t _Min_Stack_Size;  // minimal stack size
 void AudioProcessor::onSlowTimer(uv_timer_t* handle) {
 	AudioProcessor* thisInstance = (AudioProcessor*) handle->data;
 
@@ -297,11 +296,10 @@ void AudioProcessor::onSlowTimer(uv_timer_t* handle) {
 			}
 			break;
 		case 2:
-			uint32_t used_fast_memory = static_cast<int32_t>((uint32_t) &_end - (uint32_t) &_sdata);
+			uint32_t used_fast_memory = static_cast<int32_t>((uint32_t) &_end - (uint32_t) &__fast_ram_start);
 			thisInstance->fastMemoryUsed.set(used_fast_memory);
 
-			uint32_t available_fast_memory =
-			    static_cast<int32_t>((uint32_t) &_estack - (uint32_t) &_Min_Stack_Size - (uint32_t) &_end);
+			uint32_t available_fast_memory = static_cast<int32_t>((uint32_t) &__fast_ram_end - (uint32_t) &_end);
 			thisInstance->fastMemoryAvailable.set(available_fast_memory);
 
 			struct mallinfo alloc_info = mallinfo();
