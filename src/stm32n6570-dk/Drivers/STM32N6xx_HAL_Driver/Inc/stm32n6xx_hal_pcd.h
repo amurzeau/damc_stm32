@@ -193,8 +193,8 @@ typedef struct
 #define __HAL_PCD_ENABLE(__HANDLE__)                       (void)USB_EnableGlobalInt ((__HANDLE__)->Instance)
 #define __HAL_PCD_DISABLE(__HANDLE__)                      (void)USB_DisableGlobalInt ((__HANDLE__)->Instance)
 
-#define __HAL_PCD_GET_FLAG(__HANDLE__, __INTERRUPT__) \
-  ((USB_ReadInterrupts((__HANDLE__)->Instance) & (__INTERRUPT__)) == (__INTERRUPT__))
+#define __HAL_PCD_GET_FLAG(isr, __INTERRUPT__) \
+  (((isr) & (__INTERRUPT__)) == (__INTERRUPT__))
 
 #if defined (USB1_OTG_HS) || defined (USB2_OTG_HS)
 #define __HAL_PCD_CLEAR_FLAG(__HANDLE__, __INTERRUPT__)    (((__HANDLE__)->Instance->GINTSTS) &= (__INTERRUPT__))
