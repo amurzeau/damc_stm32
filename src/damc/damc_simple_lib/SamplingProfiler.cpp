@@ -1,5 +1,6 @@
 #include "SamplingProfiler.h"
 #include PLATFORM_HEADER
+#include "AudioCApi.h"
 #include <Utils.h>
 
 #ifdef SAMPLING_PROFILER_ENABLE
@@ -33,13 +34,36 @@ union EXC_RETURN {
 	};
 };
 
+union RETPSR {
+	uint32_t raw;
+	struct {
+		uint32_t exception : 9;
+		uint32_t SPREALIGN : 1;
+		uint32_t ECI_0 : 2;
+		uint32_t ECI_1 : 4;
+		uint32_t GE : 4;
+		uint32_t SPFA : 1;
+		uint32_t B : 1;
+		uint32_t RES0 : 2;
+		uint32_t T : 1;
+		uint32_t ECI_2 : 2;
+		uint32_t Q : 1;
+		uint32_t V : 1;
+		uint32_t C : 1;
+		uint32_t Z : 1;
+		uint32_t N : 1;
+	};
+};
+
 void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 	uint32_t timestamp = TIM2->CNT;
+
+	DAMC_beginMeasure(TMI_OtherIRQ);
 
 	uint32_t i;
 
 	EXC_RETURN irq_lr = {current_sp[9]};
-	uint32_t psr;
+	RETPSR psr;
 	const uint32_t* preempted_sp = sp;
 	const uint32_t* default_context;
 	bool hasAdditionalState = false;
@@ -54,7 +78,7 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 #endif
 
 	default_context = preempted_sp;
-	psr = preempted_sp[7];
+	psr.raw = preempted_sp[7];
 
 	// Default context
 	preempted_sp += 8;
@@ -64,23 +88,25 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 		preempted_sp += 18;
 	}
 
-	if(psr & (1 << 9)) {
+	if(psr.SPREALIGN) {
 		// Stack was not 8 bytes aligned
 		preempted_sp++;
 	}
 
 	uint32_t saved_pc = default_context[6];
-	uint32_t partial_instruction = 0;
+	bool assume_stack_is_up_to_date = true;
 
 	if(((SCB->ID_ISAR[2] >> 8) & 0xf) >= 2) {
-		// Check for continuable instruction like push or vpush which should be assumed already executed
-		if(((psr >> 25) & 3) == 0x0 && ((psr >> 12) & 0xf) != 0x0 && ((psr >> 10) & 3) == 0x0) {
-			// ICI value indicate an interrupted LDM/STM/POP/PUSH/VPOP/VPUSH instruction
+		// Check for continuable instruction like push or vpush which should be assumed already executed as they might
+		// have updated SP already
+		if(psr.ECI_2 == 0x0 && psr.ECI_1 != 0x0 && psr.ECI_0 == 0x0) {
+			// ICI value indicate an interrupted LDM/STM/POP/PUSH/VLDM/VSTM/VPOP/VPUSH instruction
 			// Only POP and VPOP keep the initial base register value.
 			// Other instructions use the final value.
 			// See ARMv7-M Architecture Reference Manual.
 
 			bool assume_partial_instruction_done = true;
+			assume_stack_is_up_to_date = false;
 
 			uint16_t pc_instruction_16bits = *(uint16_t*) default_context[6];
 
@@ -99,6 +125,9 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 			} else if((pc_instruction_16bits & 0b1111111110111111) == 0b1110110010111101) {
 				// VPOP encoding T2
 				assume_partial_instruction_done = false;
+			} else if((pc_instruction_16bits & 0b1110110000000000) == 0b1110110000000000) {
+				// MVE instructions are continuable, but the stack is up to date and must be used
+				assume_stack_is_up_to_date = true;
 			}
 
 			if(assume_partial_instruction_done) {
@@ -118,8 +147,6 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 				} else {
 					saved_pc += 2;
 				}
-
-				partial_instruction = 1;
 			}
 		}
 	}
@@ -129,8 +156,10 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 			;
 	}
 
-	if(sampled_callstack_data.callstack_present)
+	if(sampled_callstack_data.callstack_present) {
+		DAMC_endMeasure(TMI_OtherIRQ);
 		return;
+	}
 
 	Utils::copy_n(&sampled_callstack_data.registers[0], default_context, 4);
 	if(hasAdditionalState) {
@@ -142,7 +171,7 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 	sampled_callstack_data.registers[13] = (uint32_t) preempted_sp;
 	sampled_callstack_data.registers[14] = default_context[5];  // lr
 	sampled_callstack_data.registers[15] = saved_pc;  // pc
-	if(partial_instruction)
+	if(!assume_stack_is_up_to_date)
 		sampled_callstack_data.original_pc = default_context[6];
 	else
 		sampled_callstack_data.original_pc = 0;
@@ -154,6 +183,8 @@ void SAMPLINGPROFILER_capture(const uint32_t* sp, const uint32_t* current_sp) {
 	}
 
 	sampled_callstack_data.callstack_present = timestamp;
+
+	DAMC_endMeasure(TMI_OtherIRQ);
 }
 
 #endif
