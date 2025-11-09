@@ -48,7 +48,8 @@ union tensor_union_0 {
 	model_data_type_t tensor_3[1][256][1];
 	model_data_type_t tensor_4[1][1][256];
 	model_data_type_t tensor_5[1][1][1][256];
-	float tensor_f32[512];
+	// Add 16 as the ARM fft will do out of bound dummy reads at the end of the fft
+	float tensor_f32[512 + 16];
 };
 union tensor_union_0 tu0 __attribute__((aligned(64))) __attribute__((section(".dtcm")));
 
@@ -59,11 +60,11 @@ union tensor_union_1 {
 	model_data_type_t tensor_3[1][256][1];
 	model_data_type_t tensor_4[1][1][256];
 	model_data_type_t tensor_5[1][1][1][256];
-	float tensor_f32[512];
+	float tensor_f32[512 + 16];
 };
 union tensor_union_1 tu1 __attribute__((aligned(64))) __attribute__((section(".dtcm")));
 
-static float fft_data[257 * 2] __attribute__((aligned(64))) __attribute__((section(".dtcm")));
+static float fft_data[512 * 2] __attribute__((aligned(64))) __attribute__((section(".dtcm")));
 
 /*
  * Operand:           Conv
