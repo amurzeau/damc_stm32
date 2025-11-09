@@ -149,12 +149,12 @@ void Controls::setControlFromUSB(
 	uint8_t endpoint_index = (unit_id - 1) / AUDIO_UNIT_ID_PER_ENDPOINT;
 	uint8_t unit_id_offset = (unit_id - 1) % AUDIO_UNIT_ID_PER_ENDPOINT + 1;
 	if(endpoint_index >= controlsMapping.size()) {
-		error_control++;
+		error_control = error_control + 1;
 		return;
 	}
 
 	if(bRequest != AUDIO_REQ_CUR) {
-		error_control++;
+		error_control = error_control + 1;
 		return;
 	}
 
