@@ -219,9 +219,12 @@ file(GLOB_RECURSE SOURCE_LIST
 	Components/*.c
 	Components/*.h
 	Components/*.cpp
+	Middlewares/ST/AI/*.h
+	Middlewares/ST/AI/*.c
 )
 # Exclude template files
 list(FILTER SOURCE_LIST EXCLUDE REGEX .*/Source/Templates/.*)
+list(FILTER SOURCE_LIST EXCLUDE REGEX .*_template.c)
 
 add_library(stm32cube INTERFACE)
 target_sources(stm32cube INTERFACE ${SOURCE_LIST})
@@ -235,6 +238,24 @@ target_include_directories(
 )
 
 target_link_libraries(stm32cube INTERFACE stm32cube_headers)
+
+target_include_directories(
+    stm32cube INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/AI/Inc
+    ${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/AI/Npu/ll_aton
+    ${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/AI/Npu/Devices/STM32N6XX
+)
+target_compile_definitions(
+    stm32cube INTERFACE
+    LL_ATON_DUMP_DEBUG_API
+    LL_ATON_PLATFORM=LL_ATON_PLAT_STM32N6
+    LL_ATON_OSAL=LL_ATON_OSAL_BARE_METAL
+    LL_ATON_RT_MODE=LL_ATON_RT_ASYNC
+    LL_ATON_SW_FALLBACK
+    LL_ATON_EB_DBG_INFO
+    LL_ATON_DBG_BUFFER_INFO_EXCLUDED=1
+)
+target_link_libraries(stm32cube INTERFACE ${CMAKE_CURRENT_LIST_DIR}/Middlewares/ST/AI/Lib/NetworkRuntime1010_CM55_GCC.a)
 
 target_link_options(stm32cube INTERFACE
     -T ${CMAKE_CURRENT_LIST_DIR}/Appli/STM32N657X0HXQ_LRUN.ld

@@ -116,6 +116,33 @@ int main(void)
   /* USER CODE END Init */
 
   /* USER CODE BEGIN SysInit */
+  // Enable all SRAM to load the application
+
+  __HAL_RCC_RAMCFG_CLK_ENABLE();
+
+  // Enable NPU, required to access AXISRAM3-6
+  RCC->AHB5ENSR = RCC_AHB5ENSR_NPUENS;
+  RCC->MEMENSR = RCC_MEMENR_AXISRAM3EN | RCC_MEMENR_AXISRAM4EN | RCC_MEMENR_AXISRAM5EN | RCC_MEMENR_AXISRAM6EN;
+  RCC->MEMENR |= RCC_MEMENR_CACHEAXIRAMEN;  // RCC_MEMENR_NPUCACHERAMEN;
+
+  // Release SRAM resets
+  RAMCFG_SRAM3_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM4_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM5_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+  RAMCFG_SRAM6_AXI->CR &= ~RAMCFG_CR_SRAMSD;
+
+  /* Allow caches to be activated. Default value is 1, but the current boot sets it to 0 */
+  MEMSYSCTL->MSCR |= MEMSYSCTL_MSCR_DCACTIVE_Msk | MEMSYSCTL_MSCR_ICACTIVE_Msk;
+
+  __HAL_RCC_RIFSC_CLK_ENABLE();
+  RIMC_MasterConfig_t RIMC_master = {0};
+  RIMC_master.MasterCID = RIF_CID_1;
+  RIMC_master.SecPriv = RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV;
+
+  /*RIMC configuration*/
+  HAL_RIF_RIMC_ConfigMasterAttributes(RIF_MASTER_INDEX_NPU, &RIMC_master);
+  HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_NPU, RIF_ATTRIBUTE_PRIV | RIF_ATTRIBUTE_SEC);
+
 
   /* USER CODE END SysInit */
 
