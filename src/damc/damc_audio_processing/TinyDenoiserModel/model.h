@@ -6,7 +6,7 @@
 #include <arm_mve.h>
 #endif
 
-typedef float16_t model_data_type_t;
+typedef _Float16 model_data_type_t;
 
 #ifdef __cplusplus
 extern "C" {

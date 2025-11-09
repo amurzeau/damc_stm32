@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 include(cmake/st-project.cmake)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(${TOOLCHAIN_TARGET_NAME})
 
@@ -19,6 +19,7 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		-gdwarf-4
 		"$<$<CONFIG:Release>:-Ofast>"
 		"$<$<CONFIG:Release>:-flto=auto>"
+		$<$<COMPILE_LANGUAGE:CXX>:-fconstexpr-ops-limit=335544320>
 	)
 else()
 	target_compile_options(common_flags INTERFACE
