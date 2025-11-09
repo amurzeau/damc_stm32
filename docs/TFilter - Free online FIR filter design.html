@@ -1,0 +1,652 @@
+<html>
+<head>
+	<title>TFilter - Free online FIR filter design</title>
+
+	<meta name="description" content="Free online FIR filter design application" />
+	<meta name="keywords" content="FIR, fir filter, digital filter, filter design, equiripple, parks-mcclellan" />
+	<meta name="author" content="Peter Isza" />
+    
+    <!--
+    	<link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:700' rel='stylesheet' type='text/css'>
+	-->
+    <!--[if IE]>
+    	<script type="text/javascript" src="libs/excanvas.min.js"></script>
+    	<script type="text/javascript">
+    		alert("Warning!\nInternet Explorer is supported, but not recommended for running this application.\nPlease use a fast browser like Google Chrome.");
+    	</script>
+    <![endif]-->
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/jquery.layout.min-1.2.0.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/jquery.flot.min.js"></script>
+    <!--<script type="text/javascript" src="jquery.flot.axislabels.js"></script>-->
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/jquery.flot.selection.min.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/jquery.tablescroll.js"></script>
+	<script type="text/javascript" src="TFilter - Free online FIR filter design_files/sh_main.min.js"></script>
+	<script type="text/javascript" src="TFilter - Free online FIR filter design_files/sh_c.js"></script>
+    
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/common.js"></script>
+	<script type="text/javascript" src="TFilter - Free online FIR filter design_files/remez.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/generate.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/graph.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/control.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/ui.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/debug.js"></script>
+    <script type="text/javascript" src="TFilter - Free online FIR filter design_files/output.js"></script>
+
+    <style type="text/css">
+    
+    	body {
+    		background: lightgrey;
+    	}
+    	
+        .mycell {
+            border: 1px solid darkgrey;
+            padding: 0px;
+            margin: 0px;
+        }
+        
+        body, input, td, select {
+            font-size: 12px;
+            font-family: arial;
+        }
+        
+        #bandlist_table {
+            border-collapse: collapse;
+        }
+        
+        #response {
+			float: right;
+			width: 180px;
+			height: 200px;
+			border-left: 1px solid blue;
+			overflow: auto;
+        }
+        
+        table {
+        	border-collapse: collapse;
+        	margin: 0px;
+        	font-size: inherit;
+        }
+        
+        .ui-layout-pane {
+        	background: lightgrey !important;
+        	padding: 4px !important;
+/*        	margin: 4px !important;*/
+        }	
+        
+        .graph_container {
+        	background: white !important;
+        }
+        
+        thead {
+			background: #909090;
+        }
+        
+        #result {
+        	font-family: arial;
+        	width:95%;
+        	font-size: 11px;
+        	border: 1px solid darkgrey;
+        	background: white;
+        	text-align: left;
+        	overflow: auto;
+        	margin: 0px;
+        	padding: 4px;
+        	white-space: nowrap;
+        }
+        
+        #bandlist_wrapper {
+        	background: lightgrey;
+        	margin-right: 10px;
+        	float: left;
+        	height: 130px;
+        	overflow: auto;
+        	border: 1px solid darkgrey;
+        }
+        
+        .header_cell {
+        	text-align: center;
+        }
+        
+        a {
+        	color: darkred;
+        	text-decoration: none;
+        }
+        
+        a:hover {
+        	/*text-decoration: underline;*/
+        	text-shadow: 0px 0px 5px rgba(255, 150, 150, 1);
+        	/*color: red;*/
+        }
+        
+        a:active {
+            /*background: yellow;*/
+        }
+        
+        .global_parameter {
+        	padding-left: 4px;
+        	text-align: right;
+        	height: 20px;
+        }
+        
+        img {
+        	border: 0px;
+        }
+        
+        #about {
+        	position: absolute;
+        	z-index: 10000;
+        	border: 1px solid darkgrey;
+        	background: lightgrey;
+        	
+        	left: 10%;
+        	top: 10%;
+        	width: 400px;
+        	
+        	padding: 16px;
+            padding-bottom: 8px;
+        }
+        
+        .abouttitle {
+        	font-weight: bold; 
+        }
+        
+        p {
+        	text-align: justify;
+        }
+        
+        .link {
+/*        	color: darkblue;*/
+        }
+        
+        .code_comment {
+        	color: darkred;
+        }
+        
+        #magnitude_graph {
+            background: white;
+            /*background-image: url('images/gradient.png');
+            background-repeat: repeat-x;*/
+
+        }
+        
+        .cgentitle {
+        	font-size: 14px;
+        	font-weight: bold;
+        }
+
+        .codegenbox {
+        	border: 1px solid darkgrey;
+        	padding: 6px;
+        }
+        
+        .beer {
+            color: #404040;
+            padding-bottom: 4px;
+            font-style: italic;
+        }
+        
+        a.buybeer {
+            
+        }
+        
+        .almafa {
+	        font-family: helvetica;
+			font-size: 16px;
+			font-weight: bold;
+			color:#fff;
+    		text-shadow: 0 1px 1px #666;
+    		padding: 6px;
+    		border: 1px solid #888;
+    		margin-top: 0px;
+    		margin-bottom: 6px;
+    		display: inline-block;
+    		
+    		background: #9a9;
+    		border-radius: 4px;
+        }
+        .almafa:hover {
+            background: linear-gradient(to right, #c0ffc0 0%, #090 100%);
+			background: -webkit-linear-gradient(left, #c0ffc0 0%, #090 100%);
+			background: -moz-linear-gradient(left, #c0ffc0 0%, #090 100%);
+			background: -o-linear-gradient(left, #c0ffc0 0%, #090 100%);
+			background: -ms-linear-gradient(left, #c0ffc0 0%, #090 100%);
+
+    		text-shadow: 0 2px 2px #000;
+        }
+        
+        .leftcol {
+        	width: 48%;
+        	float: left;
+        }
+        .rightcol {
+        	width: 48%;
+        	margin-left: 50%;
+        }
+        #enterprise_box, #almafa_box {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 400px;
+    		margin: -100px 0 0 -200px;
+        }
+        #feature_box {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 410px;
+			height: 300px;
+    		margin: -150px 0 0 -200px;
+        }
+        #hireme {
+        	position: absolute;
+        	z-index: 10001;
+        	right: 320px;
+        	top: 100px;
+        	background: #ffc;
+        	border: 2px solid #faa;
+			-webkit-border-radius: 8px;
+			-moz-border-radius: 8px;
+			border-radius: 8px;
+			display: none;
+			
+			box-shadow: 0 0 25px #888;
+		    -webkit-box-shadow: 0 0 25px #888; 
+		    -moz-box-shadow: 0 0 25px #888;
+		    
+		    width: 220px;
+		    text-align: center;
+        }
+        #hireme img {
+        	margin: 20px;
+        	display: block;
+        	border: 1px solid darkgrey;
+        }
+        #hireme a.button {
+			position: relative;
+			color: rgba(255,255,255,1);
+			text-decoration: none;
+			background-color: rgba(219,87,5,1);
+			font-family: 'Yanone Kaffeesatz';
+			font-weight: 700;
+			font-size: 3em;
+			display: block;
+			padding: 4px;
+			-webkit-border-radius: 8px;
+			-moz-border-radius: 8px;
+			border-radius: 8px;
+			-webkit-box-shadow: 0px 9px 0px rgba(219,31,5,1), 0px 9px 25px rgba(0,0,0,.7);
+			-moz-box-shadow: 0px 9px 0px rgba(219,31,5,1), 0px 9px 25px rgba(0,0,0,.7);
+			box-shadow: 0px 9px 0px rgba(219,31,5,1), 0px 9px 25px rgba(0,0,0,.7);
+			margin: 10px auto;
+			margin-bottom: 22px;
+			width: 160px;
+			text-align: center;
+	
+			-webkit-transition: all .1s ease;
+			-moz-transition: all .1s ease;
+			-ms-transition: all .1s ease;
+			-o-transition: all .1s ease;
+			transition: all .1s ease;
+		}
+		#hireme a.button:active {
+			-webkit-box-shadow: 0px 3px 0px rgba(219,31,5,1), 0px 3px 6px rgba(0,0,0,.9);
+			-moz-box-shadow: 0px 3px 0px rgba(219,31,5,1), 0px 3px 6px rgba(0,0,0,.9);
+			box-shadow: 0px 3px 0px rgba(219,31,5,1), 0px 3px 6px rgba(0,0,0,.9);
+			position: relative;
+			top: 6px;
+		}
+		#hireme .closebutton {
+			position: absolute;
+			right: 5px;
+			top: 5px;
+			display: none;
+			color: #888;
+		}
+		#hireme:hover .closebutton {
+			display: block;
+			cursor: pointer;
+		}
+		#hireme p {
+			font-size: 13px;
+			text-align: center;
+			margin-top: 0px;
+			padding-top: 0px;
+		}
+    </style>
+    <link rel="stylesheet" type="text/css" href="TFilter - Free online FIR filter design_files/widgets.css" />
+    <link rel="stylesheet" type="text/css" href="TFilter - Free online FIR filter design_files/sh_style.css" />
+</head>
+
+<body onclick="javascript:byId('about').style.display = 'none';">
+	<!--<div id="hireme">
+		<a onclick="byId('hireme').style.display='none';" class="closebutton">&#x2716;</a>
+		<a href="hireme.html" target="_blank"><img src="images/peter.jpg" /></a>
+		<a href="hireme.html" target="_blank" class="button">Hire me!</a>
+		<p>If you want this box to disappear,
+		show <a href="hireme.html" target="_blank">my CV</a> to your manager.</p>
+	</div>-->
+	
+	<div id="menu_layout" class="ui-layout-center">
+    <div class="ui-layout-north">
+<!--    	<table style="width:100%; padding: 0px; margin: 0px; margin-top: 5px">
+    	<tr style="padding:0px; margin: 0px">
+            <td style="padding:0px; margin: 0px; width: 350px">-->
+            <div style="position:absolute; left: 2px; top: 8px">
+            	&nbsp;&nbsp;&nbsp;
+            	<a href="javascript:changeGraph('freq')" id="m_freq_gr">Gain vs. Frequency</a>
+            	&nbsp;&nbsp;&nbsp;
+            	<a href="javascript:changeGraph('time')" id="m_time_gr">Impulse Response</a>
+            	&nbsp;&nbsp;&nbsp;
+            	<a href="javascript:changeGraph('code')" id="m_code_gr">Source Code</a>
+			</div>
+			<div style="position:absolute; right: 14px; top:8px">
+            	<a href="javascript:changeGraph('feat')" id="m_feat_gr" style="color:#855">Feature Request</a>
+            	&nbsp;&nbsp;&nbsp;
+            	<a href="javascript:changeGraph('entr')" id="m_entr_gr" style="color:#855">Enterprise</a>
+            	&nbsp;&nbsp;&nbsp;
+            	<a href="javascript:changeGraph('alma')" id="m_alma_gr">IIR Design</a>
+            </div>
+
+<!--            </td>
+            <td style="padding:0px; margin: 0px">&nbsp;</td>
+            <td style="padding:0px; margin: 0px; width: 120px">
+            	<a href="javascript:changeGraph('desc')" id="m_desc_gr">What is a FIR filter?</a>
+            </td>
+        </tr>
+        </table>-->
+    </div>
+    <div class="ui-layout-center" id="main_tile" style="background:white">
+    	<div id="graph_box" class="mainTileStyle graph_container">
+			<div id="magnitude_graph" class="graph_container" style="margin-left:auto; margin-right:auto; margin-bottom:auto; margin-top:10px"></div>		
+		</div>
+		<div id="enterprise_box" style="background:#ffffff; padding: 15px">
+			<!--<p class="descTitle">Enterprise Users</p>-->
+			<p class="descText">Dear Professionals,</p>
+			<p class="descText">
+				As it has turned out recently, TFilter is being used by many leading corporations in the
+				Semiconductor, Consumer Electronics, Medical Devices, Transport, and Power Generation industries,
+				major Universities, and an Aeronautics Research Agency (non-exhaustive list).
+			</p>
+			<p class="descText">
+				Should you require <b>Additional Features</b>, <b>Enterprise Features</b> or <b>Services</b>, please contact
+				<i>peter &#1072;t almafa d&#1086;t org</i>,
+				or fill out the <b><a href="javascript:changeGraph('feat')">feature request form</a></b>.
+			</p>
+			<p class="descText">
+				Sincerely,<br/>
+				Peter Isza
+			</p>
+		</div>
+		<div id="feature_box" style="">
+		</div>
+		<div id="almafa_box" class="textTileStyle" style="background:#ffffff; padding: 15px">
+			<p>
+				<a href="http://almafa.org/?sidebar=docs/iir.html"><b>This free online IIR design tool</b></a>
+				is a part of a bigger project called almafa.org.
+			</p>
+			<p>
+				The idea is that you will be able to perform engineering calculations in your browser,
+				share your work easily, and reuse what others have shared.
+			</p>
+			<p>
+				The sharing features are still missing, but you can already test the calculation engine.
+			</p>
+			
+		</div>
+		<div id="description_box" class="textTileStyle" style="background:#ffffff; padding: 15px">
+        </div>
+        <div id="code_generator" class="mainTileStyle" style="padding: 10px; background: #c0c0c0">
+            
+            <div class="ui-layout-west">
+            
+            <p class="cgentitle">C code generator</p>
+            <table class="ui-layout-west" style="margin-left: 10px; margin-right:0px">
+                <tr>
+                    <td colspan="2" style="text-align:justify; font-style:italic; padding-bottom:10px" >
+	                    Please note that the generated code is faster if the number of the taps
+    	                is a power of 2.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Name of filter</td>
+                    <td><input type="text" value="Sample" id="cgen_filtername" onchange="generateCode()"/></td>
+                </tr>
+                <tr>
+                    <td>Number format</td>
+                    <td>
+                        <select id="cg_number_format" onchange="changeNumberFormat()">
+                            <option value="float">Floating point</option>
+                            <option value="int">Integer</option>
+                        </select>
+                    </td>
+                </tr>
+                <!--<tr>
+                    <td>Determine types based on signal bit numbers</td>
+                    <td><input type="checkbox" /></td>
+                </tr>-->
+                <tr id="cgenrow_precision">
+                    <td>Fixed point precision of taps</td>
+                    <td><input type="text" value="16" id="cgen_precision" onchange="generateCode()" /></td>
+                </tr>
+                <!--<tr>
+                    <td>Signal bits (including sign)</td>
+                    <td><input type="text" value="16" id="cgen_signalbits" onchange="generateCode()" /></td>
+                </tr>-->
+                <tr id="cgenrow_coefftype">
+                    <td>C type of coefficients</td>
+                    <td><input type="text" value="int" id="cgen_coefftype" onchange="generateCode()" /></td>
+                </tr>
+                <tr id="cgenrow_accumulatortype">
+                    <td>C type of accumulator <i style="color:#808080">(must be big enough to store the sum of all taps multiplied by the 
+            largest possible input signal)</i></td>
+                    <td><input type="text" value="long long" id="cgen_accumulatortype" onchange="generateCode()" /></td>
+                </tr>
+                <tr id="cgenrow_floattype">
+                    <td>Floating point type</td>
+                    <td><input type="text" value="double" id="cgen_floattype" onchange="generateCode()" /></td>
+                </tr>  
+                <tr>
+                    <td>Unroll convolution loop <i style="color:#808080">(only recommended if the number of taps is less than 40)</i></td>
+                    <td><input type="checkbox" id="cgen_unroll" onchange="generateCode()" /></td>
+                </tr>
+            </table>
+            <p class="cgentitle">Sample C++ code</p>
+            <div style="margin-left:10px">
+				<a target="_blank" href="TFilter - Free online FIR filter design_files/fir_filter.cpp">Download source</a><br/>       
+			</div>
+            <p class="beer">
+                If you like this app,
+                <a target="_blank" href="javascript:byId('paypal').submit()" class="buybeer">
+                    buy me a beer
+                </a>.
+                <img src="TFilter - Free online FIR filter design_files/beer_icon.gif" />
+            </p>
+
+            </div>
+            <div class="ui-layout-center" style="padding:0px">
+            	<p class="filename">
+            		<span id="cgen_cfilename"></span>.c
+            		<a href="javascript:fnSelect(byId('generated_code'))">Select all</a>
+            	</p>
+                <pre id="generated_code" class="sh_c codegenbox" >
+                </pre>
+            	<p class="filename">
+            		<span id="cgen_hfilename"></span>.h
+            		<a href="javascript:fnSelect(byId('generated_header'))">Select all</a>            	
+            	</p>
+                <pre id="generated_header" class="sh_c codegenbox">
+                </pre>
+                
+            </div>
+            
+        </div>
+	</div>
+	</div>
+
+	<div class="ui-layout-east" style="padding: 4px; padding-bottom: 0px !important; text-align:center">
+	
+		<div class="header" style="text-align: center">
+			<a href="javascript:showAboutBox()">
+				<img src="TFilter - Free online FIR filter design_files/title.png" style="margin-bottom: 10px; height: 55px"/>
+			</a>
+		</div>
+        <!--<div class="menu">
+            <a href="javascript:showAboutBox()" class="menuitem">How to use TFilter?</a><br/>
+            <a href="javascript:show" class="menuitem">What is a FIR filter?</a><br/>
+            <a href="javascript:show" class="menuitem">Who is using TFilter?</a><br/>
+        </div>-->
+		<div class="header">
+			<select id="output_format" onchange="showOutput()" style="width:110px">
+				<option value="text">plain text</option>
+				<option value="c">C/C++ array</option>
+			</select>
+			<select id="number_format" onchange="showOutput(); showPrecisionChooser();" style="width:70px">
+				<option value="float">double</option>
+				<option value="int">int</option>
+			</select>
+		</div>
+		<div class="ui-layout-ignore" id="precisionChooser" style="display:none">
+			fixed point precision (bits):
+			<input type="text" value="16" id="precision" style="width: 32px" onchange="showOutput();" onkeyup="showOutput();" />
+		</div>
+
+		<div class="ui-layout-content" id="result" onclick="fnSelect(this)"></div>
+		
+		<div class="footer" style="text-align: right; padding-bottom: 4px">
+			<div style="font-size: 10px; text-align: right; padding-right: 20px; margin-top: 4px">
+				Copyright &#169; 2011 Peter Isza
+			</div>
+		</div>
+	</div>
+
+
+	<div class="ui-layout-south">
+		<div class="ui-layout-content" id="bottom_bar" style="padding:0px;">
+				
+                <div style="text-align:center; top: 6px; padding-top: 0px; width: 360px; position: absolute; text-align: center; left: 20px">
+	        		<a href="javascript:addBand({startHz: 0, stopHz: 0, gain: 1, ripple: 5})" class="addButton iconButton">add&nbsp;passband</a>
+	        		<a href="javascript:addBand({startHz: 0, stopHz: 0, gain: 0, ripple: -40})" class="addButton iconButton">add&nbsp;stopband</a>
+	        		<select onchange="setPredefined(this.value); this.value='0';" title="Set a predefined configuration">
+	        			<option value="0">!predefined</option>
+	        			<option value="lowpass"> - low pass</option>
+	        			<option value="highpass"> - high pass</option>
+	        			<option value="bandpass"> - band pass</option>
+	        			<option value="bandstop"> - band stop</option>
+	        		</select>
+				</div>
+                
+            <div id="bands_editor" style="top: 38px; position: absolute; height: 100px; width: 360px; overflow: auto; left:30px">
+				<table id="bandlist_table">
+					<thead>
+						<tr>
+							<td class="header_cell">from</td>
+							<!--<td class="header_cell">width</td>-->
+							<td class="header_cell">to</td>
+							<td class="header_cell">gain</td>
+							<td class="header_cell">ripple/att.</td>
+							<td class="header_cell">act. rpl</td>
+							<td class="header_cell"> </td>
+						</tr>
+					</thead>
+					<tbody id="bandlist_tbody">
+					
+					</tbody>
+				</table>
+
+            </div>
+				<table style="height: 110px; margin: 0px; position: absolute; left: 390px; top: 10px">
+					<tr>
+						<td class="global_parameter mycell">sampling freq.&nbsp;</td>
+						<td id="samp_fr_wrapper" class="mycell"></td>
+					</tr>
+					<tr>
+						<td class="global_parameter mycell">desired #taps&nbsp;</td>
+						<td id="tap_chooser_wrapper" class="mycell"></td>
+					</tr>
+					<tr>
+						<td class="global_parameter mycell">actual #taps&nbsp;</td>
+						<td id="a_numtaps" class="actualTapNumber mycell"></td>
+					</tr>
+					<tr>
+						<td colspan="2" style="text-align:center; border: 0px" class="mycell">
+							<a href="javascript:design()" class="designButton" id="designTag"
+								style="width:120px">
+								DESIGN&nbsp;FILTER
+							</a>
+						</td>
+					</tr>
+				</table>
+			</div>
+            <!--<a
+            	style="height: 100px; position: absolute; left: 575px; width: 400px; padding: 0px; top: 0px; color: black; text-align: center; font-size: 13px"
+				href="btc.html" target="_blank"
+			>
+            	I kinda think BTC mining might be profitable nowadays.<br/>
+            	<span style="color:darkred">Click here to view my scenario analysis.</span>
+            	<img src="images/scenario.png" style="height:80px; border: 1px solid darkgrey; margin-top: 4px" />
+            </a>-->
+	    
+            <div style="display: none; height: 100px; position: absolute; left: 575px; width: 500px; padding: 0px; top: 8px; margin: 4px; text-align: left; font-size: 14px; border-left: 4px solid yellow; padding-left: 15px; ">
+                
+				<p style="margin:0;">I am working on <b>TFilter2</b>. <a href="TFilter - Free online FIR filter design_files/tfilter2.png" target="_blank">Screenshot here.</a>
+				Features include CIC (Sinc) filters, effect of quantization, save/load/share, aliasing visualization, and signal chain.
+				</p>
+                <p>
+                    If you want to <b>advertise here</b>, contact me at <a href="" id="mailx"></a>.
+                    <script>var m='peterisza'; m+="@gm"; m+="ail"; m+="."; m+="com"; var e = document.getElementById('mailx'); e.href="mailto:"+m; e.innerHTML=m;</script>
+                </p>
+                <p>
+                    TFilter is being used by many tech companies and universities.
+                </p>
+
+				<!--<ul style="margin:0;margin-top:4px">
+					<li>CIC (Sinc) filters - faster than FIR for decimation</li>
+					<li>the effect of quantization (fixed point) shown</li>
+					<li>save/load/share configuration</li>
+					<li>resampling, aliasing visualized</li> 
+					<li>signal chain</li>
+				</ul>
+				<a target="_blank" href="#"
+				   onclick="javascript:document.getElementById('paypal').submit()"
+				   style="position: absolute; left: 300px; top: 60px; display: inline-block; text-align: center"
+				>
+					Buy me a beer<br/>to support the development</a>-->
+			</div>
+            <a href="http://www.SIGNALSandSYSTEMS.education" target="_blank">
+                <img style="margin:0px; padding:0px; position: absolute; right: 10px; top: 0px; height: 124px" src="TFilter - Free online FIR filter design_files/teach3.png" 
+                alt="Solutions for Telecommunications & Electronics Teaching"
+                />
+            </a>
+ 		</div>
+	</div>
+	
+	<div id="about">
+		<img src="TFilter - Free online FIR filter design_files/title.png" style="float: left" />
+		<p class="abouttitle" style="margin-top: 20px">The free online FIR filter design tool</p>
+		<p style="clear: left; margin-top: 40px">
+			TFilter is a web application that generates
+			<a href="http://en.wikipedia.org/wiki/Finite_impulse_response" class="link" target="_blank">
+				linear phase, optimal, equiripple finite impulse response digital filters</a>.			
+			It uses a pure javascript implementation of the
+			<a href="http://en.wikipedia.org/wiki/Parks-McClellan_filter_design_algorithm" class="link" target="_blank">
+				Parks-McClellan filter design algorithm</a>.
+		</p>
+		
+		<p class="abouttitle">Usage</p>
+		<ol>
+			<li>Set the sampling frequency and the desired number of taps.</li>
+			<li>Specify the passbands (gain > 0) and stopbands (gain = 0). Make sure they don't overlap.</li>
+			<li>Click the DESIGN FILTER button.</li>
+		</ol>
+		
+		<p>An example configuration is set up for you. To try it, just click the
+			<a href="javascript:design()">DESIGN&nbsp;FILTER</a>
+			button.
+		</p>
+
+		<p class="abouttitle">Terms of Usage</p>
+		<p>The author disclaims all possibly disclaimable liabilities related to TFilter. There is no warranty for anything either.</p>
+	</div>
+</body>
+</html>
