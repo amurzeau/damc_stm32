@@ -441,7 +441,7 @@ static float hanning_window[512];
 
 void tinydenoiser_model_init() {
 	arm_rfft_fast_init_512_f32(&fft_instance);
-	arm_hanning_f32(hanning_window, 512);
+	arm_hanning_f32(hanning_window, 400);
 
 	__HAL_RCC_CACHEAXI_CLK_ENABLE();
 	__HAL_RCC_CACHEAXI_FORCE_RESET();
