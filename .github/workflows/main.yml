@@ -38,9 +38,9 @@ jobs:
       - name: Build
         run: |
           git submodule -q update --init --recursive
-          cmake -S . -B build_stm32f723disco -GNinja -DCMAKE_TOOLCHAIN_FILE=src/cmake/toolchain_stm32f723disco.cmake
+          cmake -S . -B build_stm32f723disco -GNinja -DCMAKE_TOOLCHAIN_FILE=src/cmake/toolchain_stm32f723disco.cmake -DCMAKE_BUILD_TYPE=Release
           cmake --build build_stm32f723disco --target package --config Release
-          cmake -S . -B build_stm32n6570-dk -GNinja -DCMAKE_TOOLCHAIN_FILE=src/cmake/toolchain_stm32n6570-dk.cmake
+          cmake -S . -B build_stm32n6570-dk -GNinja -DCMAKE_TOOLCHAIN_FILE=src/cmake/toolchain_stm32n6570-dk.cmake -DCMAKE_BUILD_TYPE=Release
           cmake --build build_stm32n6570-dk --target package --config Release
 
       - name: Download damc-gui assets
