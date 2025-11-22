@@ -3,10 +3,11 @@
 #include "OscContainer.h"
 #include "OscFlatArray.h"
 #include "Utils.h"
-#include <vector>
+#include <algorithm>
 #include <memory>
 #include <set>
 #include <spdlog/spdlog.h>
+#include <vector>
 
 template<typename T> class OscGenericArray : protected OscContainer {
 public:

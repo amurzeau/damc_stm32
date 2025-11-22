@@ -112,13 +112,10 @@ extern "C" void BSP_TS_Callback(uint32_t Instance) {
 }
 
 TSState TSGetState() {
-	TS_State_t state;
-	// BSP_TS_GetState(0, &state);
-
 	return TSState{
-	    .TouchDetected = state.TouchDetected,
-	    .TouchX = state.TouchX,
-	    .TouchY = state.TouchY,
+	    .TouchDetected = 0,
+	    .TouchX = 0,
+	    .TouchY = 0,
 	};
 }
 

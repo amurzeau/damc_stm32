@@ -156,8 +156,8 @@ uint32_t BSP_LCD_GetYSize(void);
  
 uint16_t BSP_LCD_GetTextColor(void);
 uint16_t BSP_LCD_GetBackColor(void);
-void     BSP_LCD_SetTextColor(__IO uint16_t Color);
-void     BSP_LCD_SetBackColor(__IO uint16_t Color);
+void     BSP_LCD_SetTextColor(uint16_t Color);
+void     BSP_LCD_SetBackColor(uint16_t Color);
 void     BSP_LCD_SetFont(sFONT *fonts);
 sFONT    *BSP_LCD_GetFont(void);
 
