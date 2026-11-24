@@ -8,7 +8,9 @@ static uint32_t* last_used_stack_size = nullptr;
 extern "C" uint8_t _sstack;
 extern "C" uint8_t _estack;
 
-void STACKMEASURE_init() {
+// Use noinline attribute to ensure we get the lowest stack address as "array", else inlining might reorder "array"
+// above other stack variable, leading to erasing them using memset.
+void __attribute__((noinline)) STACKMEASURE_init() {
 	uint8_t array[1];
 	memset((uint32_t*) &_sstack, 0xAA, &array[0] - &_sstack);
 	// Store address of array without using it directly to silence warning
