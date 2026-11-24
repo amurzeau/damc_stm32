@@ -60,6 +60,16 @@ defined in linker script */
 Reset_Handler:  
   ldr   sp, =_estack      /* set stack pointer */
 
+/* Clear D-TCM */
+  ldr R0, =_sdtcm
+  ldr R1, =_edtcm
+  mov R2, #0
+clear_dtcm:
+  str R2, [R0]
+  add R0, R0, #4
+  cmp R0, R1
+  bne clear_dtcm
+
 /* Copy the data segment initializers from flash to SRAM */  
   ldr r0, =_sdata
   ldr r1, =_edata
